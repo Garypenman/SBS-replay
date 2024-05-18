@@ -1,0 +1,25 @@
+/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2008_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2009_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2010_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2011_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2016_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2017_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2018_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2093_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2095_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2096_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2097_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2115_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2116_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2117_stream0_2_seg*.root
+#/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/e1209016_fullreplay_2118_stream0_2_seg*.root
+endlist
+bb.tr.n>0
+sbs.hcal.e>0.05
+bb.ps.e>0.2
+bb.grinch_tdc.clus.trackindex!=-1 && bb.grinch_tdc.clus.size>=3
+bb.gem.track.nhits[0]>=3
+e.kine.W2>0.25
+e.kine.W2<1.7
+endcuts
+endconfig
