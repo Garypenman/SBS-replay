@@ -97,13 +97,17 @@ variable sbs.gemPR.n2Dhit_layer
 # block sbs.gemPR.*.time.Tfine_by_APV
 # block sbs.gemPR.*.time.EventCount_by_APV
 # block sbs.gemPR.*.time.T_ns_by_APV
-# block sbs.gemPR.*.strip.nstripsfired
-# block sbs.gemPR.*.strip.nstrips_keep
-# block sbs.gemPR.*.strip.nstrips_keep_lmax
-# block sbs.gemPR.*.strip.nstrips_keepU
-# block sbs.gemPR.*.strip.nstrips_keepV
-# block sbs.gemPR.*.strip.nstrips_keep_lmaxU
-# block sbs.gemPR.*.strip.nstrips_keep_lmaxV
+block sbs.gemPR.*.strip.nstripsfired
+block sbs.gemPR.*.strip.nstrips_keep
+block sbs.gemPR.*.strip.nstrips_keep_lmax
+block sbs.gemPR.*.strip.nstrips_keepU
+block sbs.gemPR.*.strip.nstrips_keepV
+block sbs.gemPR.*.strip.nstrips_keep_lmaxU
+block sbs.gemPR.*.strip.nstrips_keep_lmaxV
+block sbs.gemPR.*.clust.nclustu
+block sbs.gemPR.*.clust.nclustv
+block sbs.gemPR.*.clust.nclustu_tot
+block sbs.gemPR.*.clust.nclustv_tot
 
 
 #th2d hsbs_gemCeF_NstripsU_layer ';layer;Number U/X strips fired' [I] sbs.gemCeF.nstripsu_layer[I] 4 -0.5 3.5 2000 -0 4000
@@ -157,7 +161,7 @@ th1d hsbs_gemCeF_allstrips_ADCmax_m8 'SBS front GEMs Module 8; All strips ADC ma
 th1d hsbs_gemCeF_allstrips_ADCmax_m9 'SBS front GEMs Module 9; All strips ADC max;' sbs.gemCeF.m9.strip.ADCmax 400 0 4000
 
 th1d hsbs_gemCeF_stripsfiredU_m0 'SBS front Module 0; Strip heat map;' sbs.gemCeF.m0.strip.istrip[I] 3968 -0.5 3967.5 sbs.gemCeF.m0.strip.IsU[I]
-th1d hsbs_gemCeF_stripsfiredU_m1 'SBS front Module 1; Strip heat map;' sbs.gemCeF.m1.strip.istrip[I] 1280 -0.5 1279.5 sbs.gemCeF.m1.strip.IsU[I]
+th1d hsbs_gemCeF_stripsfiredU_m1 'SBS front Module 1; Strip heat map;' sbs.gemCeF.m1.strip.istrip[I] 3968 -0.5 3967.5 sbs.gemCeF.m1.strip.IsU[I]
 th1d hsbs_gemCeF_stripsfiredU_m2 'SBS front Module 2; Strip heat map;' sbs.gemCeF.m2.strip.istrip[I] 1280 -0.5 1279.5 sbs.gemCeF.m2.strip.IsU[I]
 th1d hsbs_gemCeF_stripsfiredU_m3 'SBS front Module 3; Strip heat map;' sbs.gemCeF.m3.strip.istrip[I] 1280 -0.5 1279.5 sbs.gemCeF.m3.strip.IsU[I]
 th1d hsbs_gemCeF_stripsfiredU_m4 'SBS front Module 4; Strip heat map;' sbs.gemCeF.m4.strip.istrip[I] 1280 -0.5 1279.5 sbs.gemCeF.m4.strip.IsU[I]
@@ -168,7 +172,7 @@ th1d hsbs_gemCeF_stripsfiredU_m8 'SBS front Module 8; Strip heat map;' sbs.gemCe
 th1d hsbs_gemCeF_stripsfiredU_m9 'SBS front Module 9; Strip heat map;' sbs.gemCeF.m9.strip.istrip[I] 1280 -0.5 1279.5 sbs.gemCeF.m9.strip.IsU[I]
 
 th1d hsbs_gemCeF_stripsfiredV_m0 'SBS front Module 0; Strip heat map;' sbs.gemCeF.m0.strip.istrip[I] 3456 -0.5 3455.5 sbs.gemCeF.m0.strip.IsV[I]
-th1d hsbs_gemCeF_stripsfiredV_m1 'SBS front Module 1; Strip heat map;' sbs.gemCeF.m1.strip.istrip[I] 1536 -0.5 1535.5 sbs.gemCeF.m1.strip.IsV[I]
+th1d hsbs_gemCeF_stripsfiredV_m1 'SBS front Module 1; Strip heat map;' sbs.gemCeF.m1.strip.istrip[I] 3456 -0.5 3455.5 sbs.gemCeF.m1.strip.IsV[I]
 th1d hsbs_gemCeF_stripsfiredV_m2 'SBS front Module 2; Strip heat map;' sbs.gemCeF.m2.strip.istrip[I] 1536 -0.5 1535.5 sbs.gemCeF.m2.strip.IsV[I]
 th1d hsbs_gemCeF_stripsfiredV_m3 'SBS front Module 3; Strip heat map;' sbs.gemCeF.m3.strip.istrip[I] 1536 -0.5 1535.5 sbs.gemCeF.m3.strip.IsV[I]
 th1d hsbs_gemCeF_stripsfiredV_m4 'SBS front Module 4; Strip heat map;' sbs.gemCeF.m4.strip.istrip[I] 1536 -0.5 1535.5 sbs.gemCeF.m4.strip.IsV[I]

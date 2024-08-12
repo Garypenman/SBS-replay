@@ -23,6 +23,7 @@
 #include "TEllipse.h"
 #include "TFitResult.h"
 #include "TTreeFormula.h"
+#include "TRotation.h"
 #include <iostream>
 #include <fstream>
 
@@ -35,7 +36,8 @@ const double PI = TMath::Pi();
 //known dimensions and hole spacings of sieve and known dimensions and internal alignments of GEMs:
 //We are going to be lazy and use MINUIT even though this problem could easily be linearized:
 
-const double sigma_pos = 0.0001; //0.1 mm (wild guess)
+const double sigma_targpos = 0.002; //assume 2 mm resolution on track projection to target
+const double sigma_pos = 0.002; //we really need to account for sieve hole size in the resolution here
 const double sigma_slope = sigma_pos/1.6; //0.1 mm/1.6 m ~= 6e-5 gives rough order of magnitude for slope uncertainty, of course multiple scattering might invalidate that.
 
 int NTRACKS;
@@ -56,19 +58,43 @@ void CHI2_FCN( int &npar, double *gin, double &f, double *par, int flag ){
   TVector3 GEMPOS(par[0], par[1], par[2] );
   
   double ZSIEVE = par[3];
-  double thetaGEM = par[4];
-  double phiGEM = par[5]; 
+  double ax = par[4];
+  double ay = par[5]; 
+  double az = par[6];
 
+  TRotation Rtot;
+  //In the BigBite case, we start with the y-axis rotation, as that
+  //is the biggest one (roughly 10 degrees):
+  //Rtot.RotateX(ax);
+  Rtot.RotateY(ay);
+  Rtot.RotateZ(az);
+  Rtot.RotateX(ax);
+
+  //For the usual convention of a CW rotation as viewed from upstream (right-hand rule) being defined positive, the GEM z axis is rotated
+  // by ~-10 degrees wrt TRANSPORT.
+  // With this convention, the COLUMNS of the rotation matrix
+  // (or the ROWS of the inverse rotation)
+  // become the unit vectors;
+  TVector3 GEM_zaxis( Rtot.XZ(), Rtot.YZ(), Rtot.ZZ() );
+  TVector3 GEM_yaxis( Rtot.XY(), Rtot.YY(), Rtot.ZY() );
+  TVector3 GEM_xaxis( Rtot.XX(), Rtot.YX(), Rtot.ZX() );
+
+  //Inverse matrix not needed for this purpose (I think)
+  // TRotation Rinv = Rtot.Inverse();
+  
   //Define unit vectors along the GEM internal axes with respect to the global system:
-  TVector3 GEM_zaxis( sin(thetaGEM)*cos(phiGEM), sin(thetaGEM)*sin(phiGEM), cos(thetaGEM) );
-
+  //Obsolete; switch to new definition of coordinate transformation
+  //TVector3 GEM_zaxis( sin(thetaGEM)*cos(phiGEM), sin(thetaGEM)*sin(phiGEM), cos(thetaGEM) );
+  
   TVector3 Global_yaxis(0,1,0);
   //Not clear if we will need these:
   TVector3 Global_xaxis(1,0,0);
   TVector3 Global_zaxis(0,0,1); 
   
-  TVector3 GEM_xaxis = (Global_yaxis.Cross( GEM_zaxis )).Unit();
-  TVector3 GEM_yaxis = (GEM_zaxis.Cross( GEM_xaxis )).Unit();
+  //  TVector3 GEM_xaxis = (Global_yaxis.Cross( GEM_zaxis )).Unit();
+  //  TVector3 GEM_yaxis = (GEM_zaxis.Cross( GEM_xaxis )).Unit();
+
+  
   
   chi2 = 0.0;
 
@@ -78,12 +104,16 @@ void CHI2_FCN( int &npar, double *gin, double &f, double *par, int flag ){
 
     //Track direction 
     TVector3 TrackDirGlobal = TrackSievePos.Unit();
+    TVector3 TrackPosLocal( XTRACK[i], YTRACK[i], 0.0 );
 
+    //    TVector3 TrackPosGlobal = Rtot * TrackPosLocal + GEMPOS;
+    TVector3 TrackPosGlobal = GEMPOS + GEM_xaxis * TrackPosLocal.X() + GEM_yaxis * TrackPosLocal.Y() + GEM_zaxis * TrackPosLocal.Z();
     //Now compute track intersection with plane of first GEM:
     //Since all tracks start at origin, 
     //Equation is: ( s * TrackDir - GEMPOS ) dot GEM_zaxis = 0
     // OR: s = (GEMPOS dot GEM_zaxis)/(TrackDir dot GEM_zaxis)
     
+    //the calculation below ASSUMES that the track originates from the origin:
     double sintersect = GEMPOS.Dot( GEM_zaxis )/(TrackDirGlobal.Dot( GEM_zaxis ) );
 
     TVector3 TrackIntersect_FirstGEMplane = sintersect * TrackDirGlobal;
@@ -93,8 +123,17 @@ void CHI2_FCN( int &npar, double *gin, double &f, double *par, int flag ){
     double xpfp_expect = TrackDirGlobal.Dot( GEM_xaxis )/TrackDirGlobal.Dot( GEM_zaxis );
     double ypfp_expect = TrackDirGlobal.Dot( GEM_yaxis )/TrackDirGlobal.Dot( GEM_zaxis );
 
+    //Let's also add target x and target y to the chi2 calculation:
+    //Project back to the origin:
+    // equation is ( r + nhat * s ) dot zglobal = 0;
+    sintersect = -TrackPosGlobal.Dot( Global_zaxis ) / TrackDirGlobal.Dot( Global_zaxis );
+    TVector3 TrackIntersect_Origin = TrackPosGlobal + sintersect * TrackDirGlobal;
+    double xtar = TrackIntersect_Origin.X();
+    double ytar = TrackIntersect_Origin.Y();
+    
     chi2 += ( pow( xfp_expect - XTRACK[i], 2 ) + pow( yfp_expect - YTRACK[i], 2 ) ) / (sigma_pos*sigma_pos) +
-      ( pow( xpfp_expect - XPTRACK[i], 2 ) + pow( ypfp_expect - YPTRACK[i], 2 ) ) / (sigma_slope*sigma_slope);
+      ( pow( xpfp_expect - XPTRACK[i], 2 ) + pow( ypfp_expect - YPTRACK[i], 2 ) ) / (sigma_slope*sigma_slope) +
+      ( pow( xtar/sigma_targpos, 2 ) + pow( ytar/sigma_targpos, 2 ) );
     
   }
   
@@ -116,7 +155,10 @@ void AlignZeroField( const char *configfilename ){
   double YOFFSIEVE = 0.0; 
   double GEMtheta = 10.0*PI/180.0; //this will become the pitch angle
   double GEMphi = 180.0*PI/180.0; 
-
+  double GEMax = 0.0;
+  double GEMay = -10.0*PI/180.0;
+  double GEMaz = 0.0;
+  
   TCut globalcut = "";
   
   if( configfile ){
@@ -180,6 +222,21 @@ void AlignZeroField( const char *configfilename ){
 	    TString stemp = ( (TObjString*) (*tokens)[1] )->GetString();
 	    GEMphi = stemp.Atof()*PI/180.0;
 	  }
+
+	  if( skey == "GEMax" ){
+	    TString stemp = ( (TObjString*) (*tokens)[1] )->GetString();
+	    GEMax = stemp.Atof()*PI/180.0;
+	  }
+
+	  if( skey == "GEMay" ){
+	    TString stemp = ( (TObjString*) (*tokens)[1] )->GetString();
+	    GEMay = stemp.Atof()*PI/180.0;
+	  }
+
+	  if( skey == "GEMaz" ){
+	    TString stemp = ( (TObjString*) (*tokens)[1] )->GetString();
+	    GEMaz = stemp.Atof()*PI/180.0;
+	  }
 	  
 	}
       }
@@ -194,11 +251,13 @@ void AlignZeroField( const char *configfilename ){
     return;
   }
 
-  TEventList *elist = new TEventList("elist");
+  TTreeFormula *GlobalCut = new TTreeFormula( "GlobalCut",globalcut,C );
   
-  C->Draw(">>elist",globalcut);
+  //  TEventList *elist = new TEventList("elist");
   
-  cout << "Number of events passing global cut = " << elist->GetN() << endl;
+  // C->Draw(">>elist",globalcut);
+  
+  //  cout << "Number of events passing global cut = " << elist->GetN() << endl;
 
   //TODO: need to declare variables and set tree branch addresses
 
@@ -218,6 +277,10 @@ void AlignZeroField( const char *configfilename ){
   C->SetBranchStatus("*",0);
 
   TString branchname;
+
+  C->SetBranchStatus( "bb.tr.*", 1 ); 
+
+  C->SetBranchStatus( "bb.grinch_tdc.clus.*", 1 ); 
   
   C->SetBranchStatus( branchname.Format("%s.track.ntrack",prefix.Data() ), 1 );
   C->SetBranchStatus( branchname.Format("%s.track.chi2ndf",prefix.Data() ), 1 );
@@ -253,6 +316,10 @@ void AlignZeroField( const char *configfilename ){
 
   TH1D *hytar_old = new TH1D("hytar_old",";y_{tar} (m);", 250,-0.025,0.025);
   TH1D *hxtar_old = new TH1D("hxtar_old",";x_{tar} (m);", 250,-0.025,0.025);
+
+  TH1D *hytar_new = new TH1D("hytar_new",";y_{tar} (m);", 250,-0.025,0.025);
+  TH1D *hxtar_new = new TH1D("hxtar_new",";x_{tar} (m);", 250,-0.025,0.025);
+
   
   long nevent=0;
 
@@ -261,26 +328,23 @@ void AlignZeroField( const char *configfilename ){
   TVector3 Global_xaxis(1,0,0);
   TVector3 Global_zaxis(0,0,1);
 
-  TVector3 GEMzaxis( sin(GEMtheta)*cos(GEMphi), sin(GEMtheta)*sin(GEMphi), cos(GEMtheta) );
-  TVector3 GEMxaxis = (Global_yaxis.Cross(GEMzaxis)).Unit();
-  TVector3 GEMyaxis = (GEMzaxis.Cross(GEMxaxis)).Unit();
+  TRotation Rtot;
+  Rtot.RotateY( GEMay );
+  Rtot.RotateZ( GEMaz );
+  Rtot.RotateX( GEMax );
+
+  TRotation Rinv = Rtot.Inverse();
+  
+  TVector3 GEMzaxis( Rtot.XZ(), Rtot.YZ(), Rtot.ZZ() );
+  TVector3 GEMyaxis( Rtot.XY(), Rtot.YY(), Rtot.ZY() );
+  TVector3 GEMxaxis( Rtot.XX(), Rtot.YX(), Rtot.ZX() );
+  //  TVector3 GEMzaxis( sin(GEMtheta)*cos(GEMphi), sin(GEMtheta)*sin(GEMphi), cos(GEMtheta) );
+  //TVector3 GEMxaxis = (Global_yaxis.Cross(GEMzaxis)).Unit();
+  //TVector3 GEMyaxis = (GEMzaxis.Cross(GEMxaxis)).Unit();
   TVector3 GEMorigin( GEMX0, GEMY0, GEMZ0 );
   TVector3 SieveOrigin(0,0,ZSIEVE);
 
-  cout << endl << "GEM z axis in global coordinates:" << endl;
-  GEMzaxis.Print();
-
-  cout << endl << "GEM x axis in global coordinates:" << endl;
-  GEMxaxis.Print();
-
-  cout << endl << "GEM y axis in global coordinates:" << endl;
-  GEMyaxis.Print();
-
-  cout << endl << "GEM origin in global coordinates:" << endl;
-  GEMorigin.Print();
-
-  cout << endl << "Sieve slit origin in global coordinates: " << endl;
-  SieveOrigin.Print();
+  
 
   TString outCutFile;
   outCutFile=Form("sieve_cut.root");
@@ -313,44 +377,80 @@ void AlignZeroField( const char *configfilename ){
     Double_t pos=nys*0.0381-0.0381*3;//old sieve
     ys_cent.push_back(pos + YOFFSIEVE);
   }
-  
-  while( C->GetEntry( elist->GetEntry( nevent++ ) ) ){
 
-    if( nevent % 1000 == 0 ) cout << "nevent = " << nevent << endl;
+  int treenum=-1, currenttreenum=-1;
+  
+  while( C->GetEntry( nevent++ ) ){
+
+    treenum = C->GetTreeNumber();
+    if( treenum != currenttreenum || nevent <= 1 ){
+      GlobalCut->UpdateFormulaLeaves();
+      currenttreenum = treenum;
+    }
+
+    bool passedcut = GlobalCut->EvalInstance(0) != 0;
     
-    //do stuff: grab track info from tree, apply cuts, fill the track arrays defined near the top of this macro (see XTRACK, YTRACK, XPTRACK, YPTRACK, XSIEVE, YSIEVE above)
-    int itr = int(besttrack);
-    if( besttrack >= 0 && ntracks <= MAXNTRACKS ){
-      hxyfp->Fill( trackY[itr], trackX[itr] );
-      hYpFpYFp->Fill(trackYp[itr],trackY[itr]);
-      hXpFpXFp->Fill(trackXp[itr],trackX[itr]);
-  
-      TVector3 TrackPos_local( trackX[itr], trackY[itr], 0.0 );
-      TVector3 TrackDir_local( trackXp[itr], trackYp[itr], 1.0 );
-      TrackDir_local = TrackDir_local.Unit();
-      
-      TVector3 TrackDir_global = TrackDir_local.X() * GEMxaxis +
-	TrackDir_local.Y() * GEMyaxis +
-	TrackDir_local.Z() * GEMzaxis;
+    if( nevent % 1000 == 0 ) cout << "nevent = " << nevent << endl;
 
-      TVector3 TrackPos_global = GEMorigin + TrackPos_local.X() * GEMxaxis + TrackPos_local.Y() * GEMyaxis + TrackPos_local.Z() * GEMzaxis; 
-      
-      //Now compute intersection of track ray in global coordinates with sieve slit:
-      // (trackpos + s * trackdir - sieveorigin) dot globalzaxis = 0
-      // --> s * trackdir dot globalzaxis = (sieveorigin - trackpos) dot globalzaxis
-      double sintersect = (SieveOrigin - TrackPos_global).Dot( Global_zaxis ) /
-	( TrackDir_global.Dot( Global_zaxis ) );
-      TVector3 TrackSievePos = TrackPos_global + sintersect * TrackDir_global;
+    if( passedcut ){
+    
+      //do stuff: grab track info from tree, apply cuts, fill the track arrays defined near the top of this macro (see XTRACK, YTRACK, XPTRACK, YPTRACK, XSIEVE, YSIEVE above)
+      int itr = int(besttrack);
+      if( besttrack >= 0 && ntracks <= MAXNTRACKS ){
+	hxyfp->Fill( trackY[itr], trackX[itr] );
+	hYpFpYFp->Fill(trackYp[itr],trackY[itr]);
+	hXpFpXFp->Fill(trackXp[itr],trackX[itr]);
+	
+	TVector3 TrackPos_local( trackX[itr], trackY[itr], 0.0 );
+	TVector3 TrackDir_local( trackXp[itr], trackYp[itr], 1.0 );
+	TrackDir_local = TrackDir_local.Unit();
+	
+	TVector3 TrackDir_global = TrackDir_local.X() * GEMxaxis +
+	  TrackDir_local.Y() * GEMyaxis +
+	  TrackDir_local.Z() * GEMzaxis;
+	//TVector3 TrackDir_global_test = Rinv * TrackDir_local;
 
-      hxysieve->Fill( TrackSievePos.Y(), TrackSievePos.X() );
-      //cout<<"ysieve: "<<TrackSievePos.Y()<<" xsieve: "<<TrackSievePos.X()<<endl;
-      double sintersect_target = -TrackPos_global.Dot( Global_zaxis ) / (TrackDir_global.Dot( Global_zaxis ) );
+	// cout << "Testing two different calculations of track direction in global coordinates: " << endl;
+	// cout << "Local track direction: ";
+	// TrackDir_local.Print();
+	// cout << "Standard calculation: ";
+	// TrackDir_global.Print();
+	// cout << "Using inverse rotation: ";
+	// TrackDir_global_test.Print();
+	
+	TVector3 TrackPos_global = GEMorigin + TrackPos_local.X() * GEMxaxis + TrackPos_local.Y() * GEMyaxis + TrackPos_local.Z() * GEMzaxis; 
 
-      TVector3 TrackTargPos = TrackPos_global + sintersect_target * TrackDir_global;
-      
-      hytar_old->Fill( TrackTargPos.Y() );
-      hxtar_old->Fill( TrackTargPos.X() );
-      
+	// cout << "Testing two different calculations of track position in global coordinates: " << endl;
+	// cout << "Local Track position: ";
+	// TrackPos_local.Print();
+	// cout << "Standard calculation: ";
+	// TrackPos_global.Print();
+	// cout << "Using Rtot: ";
+	// TVector3 TrackPos_global_rtot = GEMorigin + Rtot * TrackPos_local;
+	// TrackPos_global_rtot.Print();
+	// cout << "Using Rinv: ";
+	// TVector3 TrackPos_global_rinv = GEMorigin + Rinv * TrackPos_local;
+	// TrackPos_global_rinv.Print();
+	
+	//TVector3 TrackPos_global = GEMorigin + Rtot * TrackPos_local;
+	
+	//Now compute intersection of track ray in global coordinates with sieve slit:
+	// (trackpos + s * trackdir - sieveorigin) dot globalzaxis = 0
+	// --> s * trackdir dot globalzaxis = (sieveorigin - trackpos) dot globalzaxis
+	double sintersect = (SieveOrigin - TrackPos_global).Dot( Global_zaxis ) /
+	  ( TrackDir_global.Dot( Global_zaxis ) );
+	TVector3 TrackSievePos = TrackPos_global + sintersect * TrackDir_global;
+	
+	hxysieve->Fill( TrackSievePos.Y(), TrackSievePos.X() );
+	//cout<<"ysieve: "<<TrackSievePos.Y()<<" xsieve: "<<TrackSievePos.X()<<endl;
+	double sintersect_target = -TrackPos_global.Dot( Global_zaxis ) / (TrackDir_global.Dot( Global_zaxis ) );
+	
+	TVector3 TrackTargPos = TrackPos_global + sintersect_target * TrackDir_global;
+	
+	hytar_old->Fill( TrackTargPos.Y() );
+	hxtar_old->Fill( TrackTargPos.X() );
+	
+      }
     }
   }//end while event
 
@@ -431,10 +531,10 @@ void AlignZeroField( const char *configfilename ){
       //define bin range as xcent +/ 0.04, 
       // ycent +/- 0.03
 
-      double ylo = ys_cent[iy] - 0.75*yspace;
-      double yhi = ys_cent[iy] + 0.75*yspace;
-      double xlo = xs_cent[ix] - 0.75*xspace;
-      double xhi = xs_cent[ix] + 0.75*xspace;
+      double ylo = ys_cent[iy] - 0.5*yspace;
+      double yhi = ys_cent[iy] + 0.5*yspace;
+      double xlo = xs_cent[ix] - 0.5*xspace;
+      double xhi = xs_cent[ix] + 0.5*xspace;
 
       TString histname;
 
@@ -576,21 +676,31 @@ void AlignZeroField( const char *configfilename ){
   //vector<vector<bool> > cutexists;
  
 
-  while( C->GetEntry( elist->GetEntry( nevent++ ) ) ){
+  while( C->GetEntry( nevent++ ) ){
     //In this second loop, make explicit the association between sieve holes and tracks:
 
+    treenum = C->GetTreeNumber();
+    if( treenum != currenttreenum || nevent <= 1 ){
+      GlobalCut->UpdateFormulaLeaves();
+      currenttreenum = treenum;
+    }
+
+    bool passedcut = GlobalCut->EvalInstance(0) != 0;
+    
     int itr = int(besttrack);
-    if( besttrack >= 0 && ntracks <= MAXNTRACKS ){
+    if( passedcut && besttrack >= 0 && ntracks <= MAXNTRACKS ){
       
       TVector3 TrackPos_local( trackX[itr], trackY[itr], 0.0 );
       TVector3 TrackDir_local( trackXp[itr], trackYp[itr], 1.0 );
       TrackDir_local = TrackDir_local.Unit();
       
       TVector3 TrackDir_global = TrackDir_local.X() * GEMxaxis +
-	TrackDir_local.Y() * GEMyaxis +
-	TrackDir_local.Z() * GEMzaxis;
-
+      	TrackDir_local.Y() * GEMyaxis +
+      	TrackDir_local.Z() * GEMzaxis;
+      //TVector3 TrackDir_global = Rinv * TrackDir_local;
+      
       TVector3 TrackPos_global = GEMorigin + TrackPos_local.X() * GEMxaxis + TrackPos_local.Y() * GEMyaxis + TrackPos_local.Z() * GEMzaxis; 
+      //TVector3 TrackPos_global = GEMorigin + Rtot * TrackPos_local;
       
       //Now compute intersection of track ray in global coordinates with sieve slit:
       // (trackpos + s * trackdir - sieveorigin) dot globalzaxis = 0
@@ -638,7 +748,7 @@ void AlignZeroField( const char *configfilename ){
 
 
   //do the thing
-  TMinuit *FitZeroField = new TMinuit( 6 );
+  TMinuit *FitZeroField = new TMinuit( 7 );
   
   FitZeroField->SetFCN( CHI2_FCN );
   
@@ -648,9 +758,10 @@ void AlignZeroField( const char *configfilename ){
   FitZeroField->mnparm( 1, "GEMY0", GEMY0, 0.03,0,0,ierflg ); //start with 3-cm uncertainty for y position
   FitZeroField->mnparm( 2, "GEMZ0", GEMZ0, 0.01,0,0,ierflg );
   FitZeroField->mnparm( 3, "ZSIEVE", ZSIEVE, 0.01,0,0,ierflg );
-  FitZeroField->mnparm( 4, "GEMtheta", GEMtheta, 0.3*PI/180.0, 0, 0, ierflg ); //guesstimate 0.3 degrees as initial angular accuracy
-  FitZeroField->mnparm( 5, "GEMphi", GEMphi, 0.3*PI/180.0, 0, 0, ierflg );
-    
+  FitZeroField->mnparm( 4, "GEMax", GEMax, 0.3*PI/180.0, 0, 0, ierflg ); //guesstimate 0.3 degrees as initial angular accuracy
+  FitZeroField->mnparm( 5, "GEMay", GEMay, 0.3*PI/180.0, 0, 0, ierflg );
+  FitZeroField->mnparm( 6, "GEMaz", GEMaz, 0.3*PI/180.0, 0, 0, ierflg );
+  
   double arglist[10];
   arglist[0]=1;
   FitZeroField->mnexcm("SET ERR",arglist,1,ierflg);
@@ -662,17 +773,53 @@ void AlignZeroField( const char *configfilename ){
   FitZeroField->mnexcm("MIGRAD",arglist,2,ierflg);
   
   //TODO: grab parameters, write them out to file. Profit.
-  double fitpar[6];
-  double fitparerr[6];
+  double fitpar[7];
+  double fitparerr[7];
 
   ofstream outfile("ZeroFieldAlign_results_new.txt");
 
   TString outline;
   
-  for (int ii=0;ii<6;ii++){
+  for (int ii=0;ii<7;ii++){
   //fitpar[ii]=FitZeroField->GetParameter(ii);fitparerr[ii]=FitZeroField->GetParameter(ii);?????
     FitZeroField->GetParameter(ii,fitpar[ii],fitparerr[ii]);
   }
+
+  GEMX0 = fitpar[0];
+  GEMY0 = fitpar[1];
+  GEMZ0 = fitpar[2];
+  GEMax = fitpar[4];
+  GEMay = fitpar[5];
+  GEMaz = fitpar[6];
+
+  TRotation Rnew;
+  Rnew.RotateY(GEMay);
+  Rnew.RotateZ(GEMaz);
+  Rnew.RotateX(GEMax);
+
+  GEMxaxis.SetXYZ( Rnew.XX(), Rnew.YX(), Rnew.ZX() );
+  GEMyaxis.SetXYZ( Rnew.XY(), Rnew.YY(), Rnew.ZY() );
+  GEMzaxis.SetXYZ( Rnew.XZ(), Rnew.YZ(), Rnew.ZZ() );
+
+  GEMorigin.SetXYZ( GEMX0, GEMY0, GEMZ0 );
+
+  SieveOrigin.SetXYZ( 0, 0, fitpar[3] );
+  
+  cout << endl << "GEM z axis in global coordinates:" << endl;
+  GEMzaxis.Print();
+
+  cout << endl << "GEM x axis in global coordinates:" << endl;
+  GEMxaxis.Print();
+
+  cout << endl << "GEM y axis in global coordinates:" << endl;
+  GEMyaxis.Print();
+
+  cout << endl << "GEM origin in global coordinates:" << endl;
+  GEMorigin.Print();
+
+  cout << endl << "Sieve slit origin in global coordinates: " << endl;
+  SieveOrigin.Print();
+  
   outline.Form("GEMX0 = %18.9g +/- %18.9g",fitpar[0], fitparerr[0]);
   outfile << outline << endl;
   cout << outline << endl;
@@ -689,14 +836,18 @@ void AlignZeroField( const char *configfilename ){
   outfile << outline << endl;
   cout << outline << endl;
 
-  outline.Form("GEMtheta = %18.9g +/- %18.9g",fitpar[4]*TMath::RadToDeg(), fitparerr[4]*TMath::RadToDeg());
+  outline.Form("GEMax = %18.9g +/- %18.9g",fitpar[4]*TMath::RadToDeg(), fitparerr[4]*TMath::RadToDeg());
   outfile << outline << endl;
   cout << outline << endl;
 
-  outline.Form("GEMphi = %18.9g +/- %18.9g",fitpar[5]*TMath::RadToDeg(), fitparerr[5]*TMath::RadToDeg());
+  outline.Form("GEMay = %18.9g +/- %18.9g",fitpar[5]*TMath::RadToDeg(), fitparerr[5]*TMath::RadToDeg());
   outfile << outline << endl;
   cout << outline << endl;
 
+  outline.Form("GEMaz = %18.9g +/- %18.9g",fitpar[6]*TMath::RadToDeg(), fitparerr[6]*TMath::RadToDeg());
+  outfile << outline << endl;
+  cout << outline << endl;
+  
   outline.Form("Implied magnet distance = %18.9g +/- %18.9g",fitpar[3]+0.3882-0.75*0.0254, fitparerr[3]);
   outfile << outline << endl;
   cout << outline << endl;

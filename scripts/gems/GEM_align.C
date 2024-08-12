@@ -558,7 +558,7 @@ void GEM_align( const char *configfilename, const char *outputfilename="newGEMal
 
  
   //niter = 1;
-  double trackchi2_cut = 10000.0;
+  double trackchi2_cut = 100.0;
   double oldchi2cut = trackchi2_cut;
   //double resid_cut = 100.0; //mm
   //double resid2_sum = 0.0;

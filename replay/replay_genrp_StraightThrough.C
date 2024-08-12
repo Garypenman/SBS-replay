@@ -45,7 +45,7 @@
 
 using namespace std;
 
-void replay_genrp_StraightThrough(UInt_t runnum=10491, Long_t nevents=-1, Long_t firstevent=1, const char *fname_prefix="e1217004", UInt_t firstsegment=0, UInt_t maxsegments=1, Int_t maxstream=2, Int_t pedestalmode=0, Int_t cmplots=0, Int_t usesbsgems=0)
+void replay_genrp_StraightThrough(UInt_t runnum=10491, Long_t nevents=-1, Long_t firstevent=1, const char *fname_prefix="e1217004", UInt_t firstsegment=0, UInt_t maxsegments=1, Int_t maxstream=2, Int_t pedestalmode=0, Int_t cmplots=0, Int_t usesbsgems=1)
 {
 
   THaAnalyzer* analyzer = new THaAnalyzer;

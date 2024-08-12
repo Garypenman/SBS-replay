@@ -402,8 +402,8 @@ sbs.gemCeF.m0.chanmap =
       25      11       5      200       1       2      14      1       1
       25      11       5      200       0       3      15      1       1
       25      11       5      200       7       4      16      1       1
-      25      11       5      200       5       5      17      1       1
-      25      11       5      200       6       6      18      1       1
+      25      11       5      200       6       5      17      1       1
+      25      11       5      200       5       6      18      1       1
       25      11       5      200       4       7      19      1       1
       25      11       5      200      13      13      29      1       0
       25      11       5      200      12      14      30      1       0
@@ -462,8 +462,8 @@ sbs.gemCeF.m1.chanmap =
       25      11       9      201       1       2      14      1       1
       25      11       9      201       0       3      15      1       1
       25      11       9      201       7       4      16      1       1
-      25      11       9      201       5       5      17      1       1
-      25      11       9      201       6       6      18      1       1
+      25      11       9      201       6       5      17      1       1
+      25      11       9      201       5       6      18      1       1
       25      11       9      201       4       7      19      1       1
       25      11       9      201      13      13      29      1       0
       25      11       9      201      12      14      30      1       0
@@ -665,14 +665,26 @@ sbs.gemCeF.m9.chanmap =
       24      11      13      16      11       9       3       0       0 
       24      11      13      16      12       8       4       0       0
 
-#--------[ 2024-04-01 00:00:00 ] #GEn-RP actual
+--------[ 2024-04-01 00:00:00 ] #GEn-RP actual
 sbs.gemCeF.pedfile = gemped/daq_ped_sbs_gem_run7150.dat
 sbs.gemCeF.cmfile = gemped/db_cmr_sbs_gem_run7150.dat
 
-#--------[ 2024-04-01 00:00:00 ] #GEn-RP actual
+--------[ 2024-04-23 18:30:00 ] #GEn-RP actual
 sbs.gemCeF.pedfile = gemped/daq_ped_sbs_gem_run361.dat
 sbs.gemCeF.cmfile = gemped/db_cmr_sbs_gem_run361.dat
 
+--------[ 2024-05-09 18:30:00 ] #GEn-RP actual
+sbs.gem.pedfile = gemped/daq_ped_sbs_gem_run967.dat
+sbs.gem.cmfile = gemped/db_cmr_sbs_gem_run967.dat
+
+--------[ 2024-05-14 15:30:00 ] #K_LL start
+sbs.gemCeF.pedfile = gemped/daq_ped_sbs_gem_run1204.dat
+sbs.gemCeF.cmfile = gemped/db_cmr_sbs_gem_run1204.dat
+
+
+
+
+-------[ 2024-04-19 16:00:00 ]
 
 sbs.gemCeF.pmin = 0.5
 sbs.gemCeF.pmax = 4.0
@@ -712,8 +724,6 @@ sbs.gemCeF.sigmatrackt0 = 5.0
 
 sbs.gemCeF.filterflag1D = -1
 sbs.gemCeF.filterflag2D = -1
-
--------[ 2024-04-19 16:00:00 ]
 
 sbs.gemCeF.usestriptimingcut = 1
 sbs.gemCeF.suppressfirstlast = -1
@@ -819,3 +829,22 @@ sbs.gemCeF.m8.position =       0.2595009    -0.001085367       0.3118105
 sbs.gemCeF.m8.angle =      -0.0184238      0.03654023       0.3148139
 sbs.gemCeF.m9.position =        0.769291      0.00129064        0.278854
 sbs.gemCeF.m9.angle =      -0.5812657      -0.2104256      0.08682717
+
+sbs.gemCeF.dump_geometry_info = 1
+
+sbs.gemCeF.trackchi2cut = 20.0 40.0
+
+
+-------[ 2024-05-15 16:00:00 ] # reduce SBS field to 70%, adjust optics limits:
+
+sbs.gemCeF.pmin = 0.5
+sbs.gemCeF.pmax = 6.4
+sbs.gemCeF.xptar_min = -0.5
+sbs.gemCeF.xptar_max = 0.5
+
+sbs.gemCeF.yptar_min = -0.2
+sbs.gemCeF.yptar_max = 0.2
+
+sbs.gemCeF.ytar_min = -0.2
+sbs.gemCeF.ytar_max = 0.2
+

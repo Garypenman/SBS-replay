@@ -37,15 +37,15 @@ sbs.gemPR.m7.apvmap =1
 # Andrew has taken this value to be 0.036 meters in his initial guess values for SBS.
 
 # ## Layer 0: Type B layer
-sbs.gemPR.m0.position = -0.748 0 0.574
-sbs.gemPR.m1.position = -0.236 0 0.542
-sbs.gemPR.m2.position =  0.276 0 0.574
-sbs.gemPR.m3.position =  0.788 0 0.542
+sbs.gemPR.m0.position = -0.748 0 1.0574
+sbs.gemPR.m1.position = -0.236 0 1.0542
+sbs.gemPR.m2.position =  0.276 0 1.0574
+sbs.gemPR.m3.position =  0.788 0 1.0542
 # ## Layer 1: Type A layer
-sbs.gemPR.m4.position = -0.748 0 0.618
-sbs.gemPR.m5.position = -0.236 0 0.586
-sbs.gemPR.m6.position =  0.276 0 0.618
-sbs.gemPR.m7.position =  0.788 0 0.586
+sbs.gemPR.m4.position = -0.748 0 1.0618
+sbs.gemPR.m5.position = -0.236 0 1.0586
+sbs.gemPR.m6.position =  0.276 0 1.0618
+sbs.gemPR.m7.position =  0.788 0 1.0586
 
 ####### ANGLES  #######
 # ##First setting --- assuming all to be All ZERO
@@ -269,12 +269,17 @@ sbs.gemPR.maxhitcombos_total = 1.e20
  sbs.gemPR.gridbinwidthy = 0.02
  sbs.gemPR.gridedgetolerancex = 0.005
  sbs.gemPR.gridedgetolerancey = 0.005
- sbs.gemPR.trackchi2cut = 50.0
+ sbs.gemPR.trackchi2cut = 250.0
 
 # For initial alignment with cosmics, we want to start with no constraints on track-finding:
 sbs.gemPR.useconstraint = 0
-sbs.gemPR.useslopeconstraint = 0
+sbs.gemPR.useslopeconstraint = 1
 sbs.gemPR.useopticsconstraint = 0
+
+sbs.gemPR.xpfp_min = -0.90
+sbs.gemPR.xpfp_max = 0.90
+sbs.gemPR.ypfp_min = 0.10
+sbs.gemPR.ypfp_max = 0.80
 
 sbs.gemPR.sigmahitpos = 0.0001
 sbs.gemPR.do_efficiencies = 1

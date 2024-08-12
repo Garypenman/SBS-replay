@@ -1,0 +1,721 @@
+-------[ 2023-12-31 23:59:59 ]
+
+## A chamber is a "Tracker-Plane" composed of vertically stacked modules
+sbs.gemCeR.modules = m0 m1 m2 m3  m4 m5 m6 m7  m8 m9 m10 m11  m12 m13 m14 m15
+
+sbs.gemCeR.is_mc = 1
+sbs.gemCeR.onlinezerosuppress = 0
+sbs.gemCeR.pedestalmode = 0
+sbs.gemCeR.commonmode_flag = -1
+
+sbs.gemCeR.useconstraint = 1
+
+sbs.gemCeR.gridbinwidthx = 0.01
+sbs.gemCeR.gridbinwidthy = 0.01
+sbs.gemCeR.gridedgetolerancex = 0.003
+sbs.gemCeR.gridedgetolerancey = 0.003
+
+sbs.gemCeR.minhitsontrack = 3
+
+sbs.gemCeR.corrcoeff_cut = 0.5
+sbs.gemCeR.ADCasym_cut = 0.5
+sbs.gemCeR.deltat_cut = 30.0
+sbs.gemCeR.filterflag1D = 0
+sbs.gemCeR.filterflag2D = 0
+
+sbs.gemCeR.threshold_stripsum = 240
+sbs.gemCeR.threshold_sample = 100
+sbs.gemCeR.threshold_clustersum = 400.0
+
+sbs.gemCeR.peakprominence_minsigma = 5.0
+sbs.gemCeR.peakprominence_minfraction = 0.2
+sbs.gemCeR.trackchi2cut = 150.0
+
+sbs.gemCeR.maxnu_charge = 4
+sbs.gemCeR.maxnv_charge = 4
+
+sbs.gemCeR.maxnu_pos = 2
+sbs.gemCeR.maxnv_pos = 2
+
+sbs.gemCeR.m0.pedu = 1500
+sbs.gemCeR.m0.rmsu = 8
+sbs.gemCeR.m0.pedv = 1500
+sbs.gemCeR.m0.rmsv = 8
+
+sbs.gemCeR.m1.pedu = 1500
+sbs.gemCeR.m1.rmsu = 8
+sbs.gemCeR.m1.pedv = 1500
+sbs.gemCeR.m1.rmsv = 8
+
+sbs.gemCeR.m2.pedu = 1500
+sbs.gemCeR.m2.rmsu = 8
+sbs.gemCeR.m2.pedv = 1500
+sbs.gemCeR.m2.rmsv = 8
+
+sbs.gemCeR.m3.pedu = 1500
+sbs.gemCeR.m3.rmsu = 8
+sbs.gemCeR.m3.pedv = 1500
+sbs.gemCeR.m3.rmsv = 8
+
+sbs.gemCeR.m4.pedu = 1500
+sbs.gemCeR.m4.rmsu = 8
+sbs.gemCeR.m4.pedv = 1500
+sbs.gemCeR.m4.rmsv = 8
+
+sbs.gemCeR.m5.pedu = 1500
+sbs.gemCeR.m5.rmsu = 8
+sbs.gemCeR.m5.pedv = 1500
+sbs.gemCeR.m5.rmsv = 8
+
+sbs.gemCeR.m6.pedu = 1500
+sbs.gemCeR.m6.rmsu = 8
+sbs.gemCeR.m6.pedv = 1500
+sbs.gemCeR.m6.rmsv = 8
+
+sbs.gemCeR.m7.pedu = 1500
+sbs.gemCeR.m7.rmsu = 8
+sbs.gemCeR.m7.pedv = 1500
+sbs.gemCeR.m7.rmsv = 8
+
+sbs.gemCeR.m8.pedu = 1500
+sbs.gemCeR.m8.rmsu = 8
+sbs.gemCeR.m8.pedv = 1500
+sbs.gemCeR.m8.rmsv = 8
+
+sbs.gemCeR.m9.pedu = 1500
+sbs.gemCeR.m9.rmsu = 8
+sbs.gemCeR.m9.pedv = 1500
+sbs.gemCeR.m9.rmsv = 8
+
+sbs.gemCeR.m10.pedu = 1500
+sbs.gemCeR.m10.rmsu = 8
+sbs.gemCeR.m10.pedv = 1500
+sbs.gemCeR.m10.rmsv = 8
+
+sbs.gemCeR.m11.pedu = 1500
+sbs.gemCeR.m11.rmsu = 8
+sbs.gemCeR.m11.pedv = 1500
+sbs.gemCeR.m11.rmsv = 8
+
+sbs.gemCeR.m12.pedu = 1500
+sbs.gemCeR.m12.rmsu = 8
+sbs.gemCeR.m12.pedv = 1500
+sbs.gemCeR.m12.rmsv = 8
+
+sbs.gemCeR.m13.pedu = 1500
+sbs.gemCeR.m13.rmsu = 8
+sbs.gemCeR.m13.pedv = 1500
+sbs.gemCeR.m13.rmsv = 8
+
+sbs.gemCeR.m14.pedu = 1500
+sbs.gemCeR.m14.rmsu = 8
+sbs.gemCeR.m14.pedv = 1500
+sbs.gemCeR.m14.rmsv = 8
+
+sbs.gemCeR.m15.pedu = 1500
+sbs.gemCeR.m15.rmsu = 8
+sbs.gemCeR.m15.pedv = 1500
+sbs.gemCeR.m15.rmsv = 8
+
+
+sbs.gemCeR.m0.layer = 0
+sbs.gemCeR.m1.layer = 0
+sbs.gemCeR.m2.layer = 0
+sbs.gemCeR.m3.layer = 0
+
+sbs.gemCeR.m4.layer = 1
+sbs.gemCeR.m5.layer = 1
+sbs.gemCeR.m6.layer = 1
+sbs.gemCeR.m7.layer = 1
+
+sbs.gemCeR.m8.layer = 2
+sbs.gemCeR.m9.layer = 2
+sbs.gemCeR.m10.layer = 2
+sbs.gemCeR.m11.layer = 2
+
+sbs.gemCeR.m12.layer = 3
+sbs.gemCeR.m13.layer = 3
+sbs.gemCeR.m14.layer = 3
+sbs.gemCeR.m15.layer = 3
+
+#MC
+sbs.gemCeR.m0.apvmap = 3
+sbs.gemCeR.m1.apvmap = 3
+sbs.gemCeR.m2.apvmap = 3
+sbs.gemCeR.m3.apvmap = 3
+
+sbs.gemCeR.m4.apvmap = 3
+sbs.gemCeR.m5.apvmap = 3
+sbs.gemCeR.m6.apvmap = 3
+sbs.gemCeR.m7.apvmap = 3
+
+sbs.gemCeR.m8.apvmap = 3
+sbs.gemCeR.m9.apvmap = 3
+sbs.gemCeR.m10.apvmap = 3
+sbs.gemCeR.m11.apvmap = 3
+
+sbs.gemCeR.m12.apvmap = 3
+sbs.gemCeR.m13.apvmap = 3
+sbs.gemCeR.m14.apvmap = 3
+sbs.gemCeR.m15.apvmap = 3
+
+#sizes
+sbs.gemCeR.m0.size = 0.512 0.6144 0.001
+sbs.gemCeR.m1.size = 0.512 0.6144 0.001
+sbs.gemCeR.m2.size = 0.512 0.6144 0.001
+sbs.gemCeR.m3.size = 0.512 0.6144 0.001
+
+sbs.gemCeR.m4.size = 0.512 0.6144 0.001
+sbs.gemCeR.m5.size = 0.512 0.6144 0.001
+sbs.gemCeR.m6.size = 0.512 0.6144 0.001
+sbs.gemCeR.m7.size = 0.512 0.6144 0.001
+
+sbs.gemCeR.m8.size = 0.512 0.6144 0.001
+sbs.gemCeR.m9.size = 0.512 0.6144 0.001
+sbs.gemCeR.m10.size = 0.512 0.6144 0.001
+sbs.gemCeR.m11.size = 0.512 0.6144 0.001
+
+sbs.gemCeR.m12.size = 0.512 0.6144 0.001
+sbs.gemCeR.m13.size = 0.512 0.6144 0.001
+sbs.gemCeR.m14.size = 0.512 0.6144 0.001
+sbs.gemCeR.m15.size = 0.512 0.6144 0.001
+
+
+#positions #m0 and m4 have a temporary offset
+sbs.gemCeR.m0.position = -0.768 0.0 0.589
+sbs.gemCeR.m1.position = -0.256 0.0 0.589
+sbs.gemCeR.m2.position =  0.256 0.0 0.589
+sbs.gemCeR.m3.position =  0.768 0.0 0.589
+
+sbs.gemCeR.m4.position = -0.768 0.0 0.689
+sbs.gemCeR.m5.position = -0.256 0.0 0.689
+sbs.gemCeR.m6.position =  0.256 0.0 0.689
+sbs.gemCeR.m7.position =  0.768 0.0 0.689
+
+sbs.gemCeR.m8.position = -0.768 0.0 0.789
+sbs.gemCeR.m9.position = -0.256 0.0 0.789
+sbs.gemCeR.m10.position =  0.256 0.0 0.789
+sbs.gemCeR.m11.position =  0.768 0.0 0.789
+
+sbs.gemCeR.m12.position = -0.768 0.0 0.889
+sbs.gemCeR.m13.position = -0.256 0.0 0.889
+sbs.gemCeR.m14.position =  0.256 0.0 0.889
+sbs.gemCeR.m15.position =  0.768 0.0 0.889
+
+
+sbs.gemCeR.m0.angle = 0.0 0.0 0.0
+sbs.gemCeR.m1.angle = 0.0 0.0 0.0
+sbs.gemCeR.m2.angle = 0.0 0.0 0.0
+sbs.gemCeR.m3.angle = 0.0 0.0 0.0
+
+sbs.gemCeR.m4.angle = 0.0 0.0 0.0
+sbs.gemCeR.m5.angle = 0.0 0.0 0.0
+sbs.gemCeR.m6.angle = 0.0 0.0 0.0
+sbs.gemCeR.m7.angle = 0.0 0.0 0.0
+
+sbs.gemCeR.m8.angle = 0.0 0.0 0.0
+sbs.gemCeR.m9.angle = 0.0 0.0 0.0
+sbs.gemCeR.m10.angle = 0.0 0.0 0.0
+sbs.gemCeR.m11.angle = 0.0 0.0 0.0
+
+sbs.gemCeR.m12.angle = 0.0 0.0 0.0
+sbs.gemCeR.m13.angle = 0.0 0.0 0.0
+sbs.gemCeR.m14.angle = 0.0 0.0 0.0
+sbs.gemCeR.m15.angle = 0.0 0.0 0.0
+
+#angles
+# for the UVA X/Y modules the "X" axis coincides with the direction of transport coordinates but the "Y" axis is opposite the direction of transport coordinates:
+# as confirmed by Sean Jeffas:
+
+sbs.gemCeR.m0.uangle =  0.0
+sbs.gemCeR.m0.vangle = 90.0
+sbs.gemCeR.m1.uangle =  0.0
+sbs.gemCeR.m1.vangle = 90.0
+sbs.gemCeR.m2.uangle =  0.0
+sbs.gemCeR.m2.vangle = 90.0
+sbs.gemCeR.m3.uangle =  0.0
+sbs.gemCeR.m3.vangle = 90.0
+
+sbs.gemCeR.m4.uangle =  0.0
+sbs.gemCeR.m4.vangle = 90.0
+sbs.gemCeR.m5.uangle =  0.0
+sbs.gemCeR.m5.vangle = 90.0
+sbs.gemCeR.m6.uangle =  0.0
+sbs.gemCeR.m6.vangle = 90.0
+sbs.gemCeR.m7.uangle =  0.0
+sbs.gemCeR.m7.vangle = 90.0
+
+sbs.gemCeR.m8.uangle =  0.0
+sbs.gemCeR.m8.vangle = 90.0
+sbs.gemCeR.m9.uangle =  0.0
+sbs.gemCeR.m9.vangle = 90.0
+sbs.gemCeR.m10.uangle =  0.0
+sbs.gemCeR.m10.vangle = 90.0
+sbs.gemCeR.m11.uangle =  0.0
+sbs.gemCeR.m11.vangle = 90.0
+
+sbs.gemCeR.m12.uangle =  0.0
+sbs.gemCeR.m12.vangle = 90.0
+sbs.gemCeR.m13.uangle =  0.0
+sbs.gemCeR.m13.vangle = 90.0
+sbs.gemCeR.m14.uangle =  0.0
+sbs.gemCeR.m14.vangle = 90.0
+sbs.gemCeR.m15.uangle =  0.0
+sbs.gemCeR.m15.vangle = 90.0
+
+#nstrips
+sbs.gemCeR.m0.nstripsu = 1280
+sbs.gemCeR.m0.nstripsv = 1536
+sbs.gemCeR.m1.nstripsu = 1280
+sbs.gemCeR.m1.nstripsv = 1536
+sbs.gemCeR.m2.nstripsu = 1280
+sbs.gemCeR.m2.nstripsv = 1536
+sbs.gemCeR.m3.nstripsu = 1280
+sbs.gemCeR.m3.nstripsv = 1536
+
+sbs.gemCeR.m4.nstripsu = 1280
+sbs.gemCeR.m4.nstripsv = 1536
+sbs.gemCeR.m5.nstripsu = 1280
+sbs.gemCeR.m5.nstripsv = 1536
+sbs.gemCeR.m6.nstripsu = 1280
+sbs.gemCeR.m6.nstripsv = 1536
+sbs.gemCeR.m7.nstripsu = 1280
+sbs.gemCeR.m7.nstripsv = 1536
+
+sbs.gemCeR.m8.nstripsu = 1280
+sbs.gemCeR.m8.nstripsv = 1536
+sbs.gemCeR.m9.nstripsu = 1280
+sbs.gemCeR.m9.nstripsv = 1536
+sbs.gemCeR.m10.nstripsu = 1280
+sbs.gemCeR.m10.nstripsv = 1536
+sbs.gemCeR.m11.nstripsu = 1280
+sbs.gemCeR.m11.nstripsv = 1536
+
+sbs.gemCeR.m12.nstripsu = 1280
+sbs.gemCeR.m12.nstripsv = 1536
+sbs.gemCeR.m13.nstripsu = 1280
+sbs.gemCeR.m13.nstripsv = 1536
+sbs.gemCeR.m14.nstripsu = 1280
+sbs.gemCeR.m14.nstripsv = 1536
+sbs.gemCeR.m15.nstripsu = 1280
+sbs.gemCeR.m15.nstripsv = 1536
+
+
+# all modules have the same strip pitch along both dimensions, 0.4 mm:
+sbs.gemCeR.upitch = 0.0004
+sbs.gemCeR.vpitch = 0.0004
+
+# tracking parameters:
+sbs.gemCeR.threshold_sample = 50.0
+sbs.gemCeR.threshold_stripsum = 250.0
+sbs.gemCeR.threshold_clustersum = 500.0
+
+sbs.gemCeR.ADCasym_cut = 0.5
+sbs.gemCeR.deltat_cut = 30.0
+sbs.gemCeR.corrcoeff_cut = 0.5
+sbs.gemCeR.filterflag1D = 1
+sbs.gemCeR.filterflag2D = 0
+
+sbs.gemCeR.m0.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21    0   0   0   0   0   0   0    0 # Strip    0- 127
+      21    0   0   0   1   0   1   0    0 # Strip  128- 255
+      21    0   0   0   2   0   2   0    0 # Strip  256- 383
+      21    0   0   0   3   0   3   0    0 # Strip  384- 511
+      21    0   0   0   4   0   4   0    0 # Strip  512- 639
+      21    0   0   0   5   0   5   0    0 # Strip  640- 767
+      21    0   0   0   6   0   6   0    0 # Strip  768- 895
+      21    0   0   0   7   0   7   0    0 # Strip  896-1023
+      21    0   0   0   8   0   8   0    0 # Strip 1024-1151
+      21    0   0   0   9   0   9   0    0 # Strip 1152-1279
+      21    0   0   0  10   0   0   0    1 # Strip    0- 127
+      21    0   0   0  11   0   1   0    1 # Strip  128- 255
+      21    0   0   0  12   0   2   0    1 # Strip  256- 383
+      21    0   0   0  13   0   3   0    1 # Strip  384- 511
+      21    0   0   0  14   0   4   0    1 # Strip  512- 639
+      21    0   0   0  15   0   5   0    1 # Strip  640- 767
+      21    1   1   0   0   0   6   0    1 # Strip  768- 895
+      21    1   1   0   1   0   7   0    1 # Strip  896-1023
+      21    1   1   0   2   0   8   0    1 # Strip 1024-1151
+      21    1   1   0   3   0   9   0    1 # Strip 1152-1279
+      21    1   1   0   4   0  10   0    1 # Strip 1280-1407
+      21    1   1   0   5   0  11   0    1 # Strip 1408-1535
+
+sbs.gemCeR.m1.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21    1   1   0   6   0   0   0    0 # Strip 
+      21    1   1   0   7   0   1   0    0 # Strip 
+      21    1   1   0   8   0   2   0    0 # Strip 
+      21    1   1   0   9   0   3   0    0 # Strip 
+      21    1   1   0  10   0   4   0    0 # Strip 
+      21    1   1   0  11   0   5   0    0 # Strip 
+      21    1   1   0  12   0   6   0    0 # Strip 
+      21    1   1   0  13   0   7   0    0 # Strip 
+      21    1   1   0  14   0   8   0    0 # Strip 
+      21    1   1   0  15   0   9   0    0 # Strip 
+      21    2   2   0   0   0   0   0    1 # Strip 
+      21    2   2   0   1   0   1   0    1 # Strip 
+      21    2   2   0   2   0   2   0    1 # Strip 
+      21    2   2   0   3   0   3   0    1 # Strip 
+      21    2   2   0   4   0   4   0    1 # Strip 
+      21    2   2   0   5   0   5   0    1 # Strip 
+      21    2   2   0   6   0   6   0    1 # Strip 
+      21    2   2   0   7   0   7   0    1 # Strip 
+      21    2   2   0   8   0   8   0    1 # Strip 
+      21    2   2   0   9   0   9   0    1 # Strip 
+      21    2   2   0  10   0  10   0    1 # Strip 
+      21    2   2   0  11   0  11   0    1 # Strip 
+
+sbs.gemCeR.m2.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21    2   2   0  12   0   0   0    0 # Strip 
+      21    2   2   0  13   0   1   0    0 # Strip 
+      21    2   2   0  14   0   2   0    0 # Strip 
+      21    2   2   0  15   0   3   0    0 # Strip 
+      21    3   3   0   0   0   4   0    0 # Strip 
+      21    3   3   0   1   0   5   0    0 # Strip 
+      21    3   3   0   2   0   6   0    0 # Strip 
+      21    3   3   0   3   0   7   0    0 # Strip 
+      21    3   3   0   4   0   8   0    0 # Strip 
+      21    3   3   0   5   0   9   0    0 # Strip 
+      21    3   3   0   6   0   0   0    1 # Strip 
+      21    3   3   0   7   0   1   0    1 # Strip 
+      21    3   3   0   8   0   2   0    1 # Strip 
+      21    3   3   0   9   0   3   0    1 # Strip 
+      21    3   3   0  10   0   4   0    1 # Strip 
+      21    3   3   0  11   0   5   0    1 # Strip 
+      21    3   3   0  12   0   6   0    1 # Strip 
+      21    3   3   0  13   0   7   0    1 # Strip 
+      21    3   3   0  14   0   8   0    1 # Strip 
+      21    3   3   0  15   0   9   0    1 # Strip 
+      21    4   4   0   0   0  10   0    1 # Strip 
+      21    4   4   0   1   0  11   0    1 # Strip 
+
+sbs.gemCeR.m3.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21    4   4   0   2   0   0   0    0 # Strip 
+      21    4   4   0   3   0   1   0    0 # Strip 
+      21    4   4   0   4   0   2   0    0 # Strip 
+      21    4   4   0   5   0   3   0    0 # Strip 
+      21    4   4   0   6   0   4   0    0 # Strip 
+      21    4   4   0   7   0   5   0    0 # Strip 
+      21    4   4   0   8   0   6   0    0 # Strip 
+      21    4   4   0   9   0   7   0    0 # Strip 
+      21    4   4   0  10   0   8   0    0 # Strip 
+      21    4   4   0  11   0   9   0    0 # Strip 
+      21    4   4   0  12   0   0   0    1 # Strip 
+      21    4   4   0  13   0   1   0    1 # Strip 
+      21    4   4   0  14   0   2   0    1 # Strip 
+      21    4   4   0  15   0   3   0    1 # Strip 
+      21    5   5   0   0   0   4   0    1 # Strip 
+      21    5   5   0   1   0   5   0    1 # Strip 
+      21    5   5   0   2   0   6   0    1 # Strip 
+      21    5   5   0   3   0   7   0    1 # Strip 
+      21    5   5   0   4   0   8   0    1 # Strip 
+      21    5   5   0   5   0   9   0    1 # Strip 
+      21    5   5   0   6   0  10   0    1 # Strip 
+      21    5   5   0   7   0  11   0    1 # Strip 
+
+
+sbs.gemCeR.m4.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21    5   5   0   8   0   0   0    0 # Strip 
+      21    5   5   0   9   0   1   0    0 # Strip 
+      21    5   5   0  10   0   2   0    0 # Strip 
+      21    5   5   0  11   0   3   0    0 # Strip 
+      21    5   5   0  12   0   4   0    0 # Strip 
+      21    5   5   0  13   0   5   0    0 # Strip 
+      21    5   5   0  14   0   6   0    0 # Strip 
+      21    5   5   0  15   0   7   0    0 # Strip 
+      21    6   6   0   0   0   8   0    0 # Strip 
+      21    6   6   0   1   0   9   0    0 # Strip 
+      21    6   6   0   2   0   0   0    1 # Strip 
+      21    6   6   0   3   0   1   0    1 # Strip 
+      21    6   6   0   4   0   2   0    1 # Strip 
+      21    6   6   0   5   0   3   0    1 # Strip 
+      21    6   6   0   6   0   4   0    1 # Strip 
+      21    6   6   0   7   0   5   0    1 # Strip 
+      21    6   6   0   8   0   6   0    1 # Strip 
+      21    6   6   0   9   0   7   0    1 # Strip 
+      21    6   6   0  10   0   8   0    1 # Strip 
+      21    6   6   0  11   0   9   0    1 # Strip 
+      21    6   6   0  12   0  10   0    1 # Strip 
+      21    6   6   0  13   0  11   0    1 # Strip 
+
+sbs.gemCeR.m5.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21    6   6   0  14   0   0   0    0 # Strip    0- 127
+      21    6   6   0  15   0   1   0    0 # Strip  128- 255
+      21    7   7   0   0   0   2   0    0 # Strip  256- 383
+      21    7   7   0   1   0   3   0    0 # Strip  384- 511
+      21    7   7   0   2   0   4   0    0 # Strip  512- 639
+      21    7   7   0   3   0   5   0    0 # Strip  640- 767
+      21    7   7   0   4   0   6   0    0 # Strip  768- 895
+      21    7   7   0   5   0   7   0    0 # Strip  896-1023
+      21    7   7   0   6   0   8   0    0 # Strip 1024-1151
+      21    7   7   0   7   0   9   0    0 # Strip 1152-1279
+      21    7   7   0   8   0   0   0    1 # Strip 
+      21    7   7   0   9   0   1   0    1 # Strip 
+      21    7   7   0  10   0   2   0    1 # Strip 
+      21    7   7   0  11   0   3   0    1 # Strip 
+      21    7   7   0  12   0   4   0    1 # Strip 
+      21    7   7   0  13   0   5   0    1 # Strip 
+      21    7   7   0  14   0   6   0    1 # Strip 
+      21    7   7   0  15   0   7   0    1 # Strip 
+      21    8   8   0   0   0   8   0    1 # Strip 
+      21    8   8   0   1   0   9   0    1 # Strip 
+      21    8   8   0   2   0  10   0    1 # Strip 
+      21    8   8   0   3   0  11   0    1 # Strip 
+
+sbs.gemCeR.m6.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21    8   8   0   4   0   0   0    0 # Strip 
+      21    8   8   0   5   0   1   0    0 # Strip 
+      21    8   8   0   6   0   2   0    0 # Strip 
+      21    8   8   0   7   0   3   0    0 # Strip 
+      21    8   8   0   8   0   4   0    0 # Strip 
+      21    8   8   0   9   0   5   0    0 # Strip 
+      21    8   8   0  10   0   6   0    0 # Strip 
+      21    8   8   0  11   0   7   0    0 # Strip 
+      21    8   8   0  12   0   8   0    0 # Strip 
+      21    8   8   0  13   0   9   0    0 # Strip 
+      21    8   8   0  14   0   0   0    1 # Strip    0- 127
+      21    8   8   0  15   0   1   0    1 # Strip  128- 255
+      21    9   9   0   0   0   2   0    1 # Strip  256- 383
+      21    9   9   0   1   0   3   0    1 # Strip  384- 511
+      21    9   9   0   2   0   4   0    1 # Strip  512- 639
+      21    9   9   0   3   0   5   0    1 # Strip  640- 767
+      21    9   9   0   4   0   6   0    1 # Strip  768- 895
+      21    9   9   0   5   0   7   0    1 # Strip  896-1023
+      21    9   9   0   6   0   8   0    1 # Strip 1024-1151
+      21    9   9   0   7   0   9   0    1 # Strip 1152-1279
+      21    9   9   0   8   0  10   0    1 # Strip 1280-1407
+      21    9   9   0   9   0  11   0    1 # Strip 1408-1535
+
+sbs.gemCeR.m7.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21    9   9   0  10   0   0   0    0 # Strip    0- 127
+      21    9   9   0  11   0   1   0    0 # Strip  128- 255
+      21    9   9   0  12   0   2   0    0 # Strip 
+      21    9   9   0  13   0   3   0    0 # Strip 
+      21    9   9   0  14   0   4   0    0 # Strip 
+      21    9   9   0  15   0   5   0    0 # Strip 
+      21   10  10   0   0   0   6   0    0 # Strip 
+      21   10  10   0   1   0   7   0    0 # Strip 
+      21   10  10   0   2   0   8   0    0 # Strip 
+      21   10  10   0   3   0   9   0    0 # Strip 
+      21   10  10   0   4   0   0   0    1 # Strip    0- 127
+      21   10  10   0   5   0   1   0    1 # Strip  128- 255
+      21   10  10   0   6   0   2   0    1 # Strip  256- 383
+      21   10  10   0   7   0   3   0    1 # Strip  384- 511
+      21   10  10   0   8   0   4   0    1 # Strip  512- 639
+      21   10  10   0   9   0   5   0    1 # Strip  640- 767
+      21   10  10   0  10   0   6   0    1 # Strip  768- 895
+      21   10  10   0  11   0   7   0    1 # Strip  896-1023
+      21   10  10   0  12   0   8   0    1 # Strip 1024-1151
+      21   10  10   0  13   0   9   0    1 # Strip 1152-1279
+      21   10  10   0  14   0  10   0    1 # Strip 1280-1407
+      21   10  10   0  15   0  11   0    1 # Strip 1408-1535
+
+
+sbs.gemCeR.m8.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21   11  11   0   0   0   0   0    0 # Strip 
+      21   11  11   0   1   0   1   0    0 # Strip 
+      21   11  11   0   2   0   2   0    0 # Strip 
+      21   11  11   0   3   0   3   0    0 # Strip 
+      21   11  11   0   4   0   4   0    0 # Strip 
+      21   11  11   0   5   0   5   0    0 # Strip 
+      21   11  11   0   6   0   6   0    0 # Strip 
+      21   11  11   0   7   0   7   0    0 # Strip 
+      21   11  11   0   8   0   8   0    0 # Strip 
+      21   11  11   0   9   0   9   0    0 # Strip 
+      21   11  11   0  10   0   0   0    1 # Strip 
+      21   11  11   0  11   0   1   0    1 # Strip 
+      21   11  11   0  12   0   2   0    1 # Strip 
+      21   11  11   0  13   0   3   0    1 # Strip 
+      21   11  11   0  14   0   4   0    1 # Strip 
+      21   11  11   0  15   0   5   0    1 # Strip 
+      21   12  12   0   0   0   6   0    1 # Strip 
+      21   12  12   0   1   0   7   0    1 # Strip 
+      21   12  12   0   2   0   8   0    1 # Strip 
+      21   12  12   0   3   0   9   0    1 # Strip 
+      21   12  12   0   4   0  10   0    1 # Strip 
+      21   12  12   0   5   0  11   0    1 # Strip
+
+sbs.gemCeR.m9.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21   12  12   0   6   0   0   0    0 # Strip 
+      21   12  12   0   7   0   1   0    0 # Strip 
+      21   12  12   0   8   0   2   0    0 # Strip 
+      21   12  12   0   9   0   3   0    0 # Strip 
+      21   12  12   0  10   0   4   0    0 # Strip 
+      21   12  12   0  11   0   5   0    0 # Strip 
+      21   12  12   0  12   0   6   0    0 # Strip 
+      21   12  12   0  13   0   7   0    0 # Strip 
+      21   12  12   0  14   0   8   0    0 # Strip 
+      21   12  12   0  15   0   9   0    0 # Strip 
+      21   13  13   0   0   0   0   0    1 # Strip 
+      21   13  13   0   1   0   1   0    1 # Strip 
+      21   13  13   0   2   0   2   0    1 # Strip 
+      21   13  13   0   3   0   3   0    1 # Strip 
+      21   13  13   0   4   0   4   0    1 # Strip 
+      21   13  13   0   5   0   5   0    1 # Strip 
+      21   13  13   0   6   0   6   0    1 # Strip 
+      21   13  13   0   7   0   7   0    1 # Strip 
+      21   13  13   0   8   0   8   0    1 # Strip 
+      21   13  13   0   9   0   9   0    1 # Strip 
+      21   13  13   0  10   0  10   0    1 # Strip 
+      21   13  13   0  11   0  11   0    1 # Strip 
+
+sbs.gemCeR.m10.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21   13  13   0  12   0   0   0    0 # Strip    0- 127
+      21   13  13   0  13   0   1   0    0 # Strip  128- 255
+      21   13  13   0  14   0   2   0    0 # Strip  256- 383
+      21   13  13   0  15   0   3   0    0 # Strip  384- 511
+      21   14  14   0   0   0   4   0    0 # Strip  512- 639
+      21   14  14   0   1   0   5   0    0 # Strip  640- 767
+      21   14  14   0   2   0   6   0    0 # Strip  768- 895
+      21   14  14   0   3   0   7   0    0 # Strip  896-1023
+      21   14  14   0   4   0   8   0    0 # Strip 1024-1151
+      21   14  14   0   5   0   9   0    0 # Strip 1152-1279
+      21   14  14   0   6   0   0   0    1 # Strip 
+      21   14  14   0   7   0   1   0    1 # Strip 
+      21   14  14   0   8   0   2   0    1 # Strip 
+      21   14  14   0   9   0   3   0    1 # Strip 
+      21   14  14   0  10   0   4   0    1 # Strip 
+      21   14  14   0  11   0   5   0    1 # Strip 
+      21   14  14   0  12   0   6   0    1 # Strip 
+      21   14  14   0  13   0   7   0    1 # Strip 
+      21   14  14   0  14   0   8   0    1 # Strip 
+      21   14  14   0  15   0   9   0    1 # Strip 
+      21   15  15   0   0   0  10   0    1 # Strip 
+      21   15  15   0   1   0  11   0    1 # Strip 
+
+sbs.gemCeR.m11.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21   15  15   0   2   0   0   0    0 # Strip 
+      21   15  15   0   3   0   1   0    0 # Strip 
+      21   15  15   0   4   0   2   0    0 # Strip 
+      21   15  15   0   5   0   3   0    0 # Strip 
+      21   15  15   0   6   0   4   0    0 # Strip 
+      21   15  15   0   7   0   5   0    0 # Strip 
+      21   15  15   0   8   0   6   0    0 # Strip 
+      21   15  15   0   9   0   7   0    0 # Strip 
+      21   15  15   0  10   0   8   0    0 # Strip 
+      21   15  15   0  11   0   9   0    0 # Strip 
+      21   15  15   0  12   0   0   0    1 # Strip 
+      21   15  15   0  13   0   1   0    1 # Strip 
+      21   15  15   0  14   0   2   0    1 # Strip 
+      21   15  15   0  15   0   3   0    1 # Strip 
+      21   16  16   0   0   0   4   0    1 # Strip 
+      21   16  16   0   1   0   5   0    1 # Strip 
+      21   16  16   0   2   0   6   0    1 # Strip 
+      21   16  16   0   3   0   7   0    1 # Strip 
+      21   16  16   0   4   0   8   0    1 # Strip 
+      21   16  16   0   5   0   9   0    1 # Strip 
+      21   16  16   0   6   0  10   0    1 # Strip 
+      21   16  16   0   7   0  11   0    1 # Strip 
+
+
+sbs.gemCeR.m12.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21   16  16   0   8   0   0   0    0 # Strip 
+      21   16  16   0   9   0   1   0    0 # Strip 
+      21   16  16   0  10   0   2   0    0 # Strip 
+      21   16  16   0  11   0   3   0    0 # Strip 
+      21   16  16   0  12   0   4   0    0 # Strip 
+      21   16  16   0  13   0   5   0    0 # Strip 
+      21   16  16   0  14   0   6   0    0 # Strip 
+      21   16  16   0  15   0   7   0    0 # Strip 
+      21   17  17   0   0   0   8   0    0 # Strip 
+      21   17  17   0   1   0   9   0    0 # Strip 
+      21   17  17   0   2   0   0   0    1 # Strip 
+      21   17  17   0   3   0   1   0    1 # Strip 
+      21   17  17   0   4   0   2   0    1 # Strip 
+      21   17  17   0   5   0   3   0    1 # Strip 
+      21   17  17   0   6   0   4   0    1 # Strip 
+      21   17  17   0   7   0   5   0    1 # Strip 
+      21   17  17   0   8   0   6   0    1 # Strip 
+      21   17  17   0   9   0   7   0    1 # Strip 
+      21   17  17   0  10   0   8   0    1 # Strip 
+      21   17  17   0  11   0   9   0    1 # Strip 
+      21   17  17   0  12   0  10   0    1 # Strip 
+      21   17  17   0  13   0  11   0    1 # Strip 
+
+sbs.gemCeR.m13.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      21   17  17   0  14   0   0   0    0 # Strip 
+      21   17  17   0  15   0   1   0    0 # Strip 
+      21   18  18   0   0   0   2   0    0 # Strip 
+      21   18  18   0   1   0   3   0    0 # Strip 
+      21   18  18   0   2   0   4   0    0 # Strip 
+      21   18  18   0   3   0   5   0    0 # Strip 
+      21   18  18   0   4   0   6   0    0 # Strip 
+      21   18  18   0   5   0   7   0    0 # Strip 
+      21   18  18   0   6   0   8   0    0 # Strip 
+      21   18  18   0   7   0   9   0    0 # Strip 
+      21   18  18   0   8   0   0   0    1 # Strip 
+      21   18  18   0   9   0   1   0    1 # Strip 
+      21   18  18   0  10   0   2   0    1 # Strip 
+      21   18  18   0  11   0   3   0    1 # Strip 
+      21   18  18   0  12   0   4   0    1 # Strip 
+      21   18  18   0  13   0   5   0    1 # Strip 
+      21   18  18   0  14   0   6   0    1 # Strip 
+      21   18  18   0  15   0   7   0    1 # Strip 
+      21   19  19   0   0   0   8   0    1 # Strip 
+      21   19  19   0   1   0   9   0    1 # Strip 
+      21   19  19   0   2   0  10   0    1 # Strip 
+      21   19  19   0   3   0  11   0    1 # Strip 
+
+sbs.gemCeR.m14.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      22   11  11   0   0   0   0   0    0 # Strip 
+      22   11  11   0   1   0   1   0    0 # Strip 
+      22   11  11   0   2   0   2   0    0 # Strip 
+      22   11  11   0   3   0   3   0    0 # Strip 
+      22   11  11   0   4   0   4   0    0 # Strip 
+      22   11  11   0   5   0   5   0    0 # Strip 
+      22   11  11   0   6   0   6   0    0 # Strip 
+      22   11  11   0   7   0   7   0    0 # Strip 
+      22   11  11   0   8   0   8   0    0 # Strip 
+      22   11  11   0   9   0   9   0    0 # Strip 
+      22   11  11   0  10   0   0   0    1 # Strip 
+      22   11  11   0  11   0   1   0    1 # Strip 
+      22   11  11   0  12   0   2   0    1 # Strip 
+      22   11  11   0  13   0   3   0    1 # Strip 
+      22   11  11   0  14   0   4   0    1 # Strip 
+      22   11  11   0  15   0   5   0    1 # Strip 
+      22   12  12   0   0   0   6   0    1 # Strip 
+      22   12  12   0   1   0   7   0    1 # Strip 
+      22   12  12   0   2   0   8   0    1 # Strip 
+      22   12  12   0   3   0   9   0    1 # Strip 
+      22   12  12   0   4   0  10   0    1 # Strip 
+      22   12  12   0   5   0  11   0    1 # Strip
+
+sbs.gemCeR.m15.chanmap = 
+## Crate Slot mpd gem adc i2c pos inv axis # (1280 x-strips, 1536 y-strips)
+      22   12  12   0   6   0   0   0    0 # Strip 
+      22   12  12   0   7   0   1   0    0 # Strip 
+      22   12  12   0   8   0   2   0    0 # Strip 
+      22   12  12   0   9   0   3   0    0 # Strip 
+      22   12  12   0  10   0   4   0    0 # Strip 
+      22   12  12   0  11   0   5   0    0 # Strip 
+      22   12  12   0  12   0   6   0    0 # Strip 
+      22   12  12   0  13   0   7   0    0 # Strip 
+      22   12  12   0  14   0   8   0    0 # Strip 
+      22   12  12   0  15   0   9   0    0 # Strip 
+      22   13  13   0   0   0   0   0    1 # Strip 
+      22   13  13   0   1   0   1   0    1 # Strip 
+      22   13  13   0   2   0   2   0    1 # Strip 
+      22   13  13   0   3   0   3   0    1 # Strip 
+      22   13  13   0   4   0   4   0    1 # Strip 
+      22   13  13   0   5   0   5   0    1 # Strip 
+      22   13  13   0   6   0   6   0    1 # Strip 
+      22   13  13   0   7   0   7   0    1 # Strip 
+      22   13  13   0   8   0   8   0    1 # Strip 
+      22   13  13   0   9   0   9   0    1 # Strip 
+      22   13  13   0  10   0  10   0    1 # Strip 
+      22   13  13   0  11   0  11   0    1 # Strip 
+

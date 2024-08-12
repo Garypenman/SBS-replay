@@ -22,7 +22,7 @@ sbs.activeAna_adc.ncols = 4
 sbs.activeAna_adc.adc.conv = 0.12207
 
 # Threshold for pulse finding in waveform (mV)
-sbs.activeAna_adc.adc.thres = 5.
+sbs.activeAna_adc.adc.thres = 15.
 
 # Number of bins (bin=4ns) at the beginning of waveform used to determing average Pedestal
 sbs.activeAna_adc.adc.NPedBin = 4
