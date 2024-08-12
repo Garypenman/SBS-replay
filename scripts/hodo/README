@@ -1,0 +1,27 @@
+############
+New README
+
+12th August 2024
+G. Penman
+
+############
+
+This is a read me intended for the 'new' as of the above date hodoscope and timing related scripts
+
+############
+
+tof_skim.cxx:
+-reads in standard sbs-offline output files in a chain and creates a more lightweight skim file to loop over more easily and quickly in analysis code. Keep note that branch names are often shortened i.e.
+      bb.hodotdc.clus.bar.tdc.tleft -> hodo_tleft
+-Bare this n mind if you try to run existing analysis code over the output.
+-You may need to edit the code if you want to skim rootfiles from personal directories, this is as easy as changing the path in ROOTFILE_DIR variable.
+-Run the code as
+    root tof_skim.cxx+
+
+############
+
+TOFCal.C:
+-Currently a proof of concept code for a global Chi2 minimisation technique to calibrate the hodoscope (and eventually the hcal and coincidence time) for all effects (tof, timewalk, offset, propagation etc..) simultaneously.
+-The code works out constants for hodo and hcal and outputs them to hodoparams.txt and hcalparams.txt. If this is the first time running the code then these will be generated, and "before" and "after" plots will just look the same.
+-If you run the code a second time, the offsets which were generated will be read in from the text files and then the "after" plots will be updated for the calibrations.
+-The plots are output into the file TOFCal_out.root
