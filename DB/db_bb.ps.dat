@@ -1704,6 +1704,10 @@ bb.ps.adc.gain =
 ## Starting from run 1475
 -------[ 2022-09-19 23:00:00 ]
 
+## Maximum time difference between cluster seed and additional clusters, set to 1000 ns by default
+# keep this cut wider until we more fully understand its effect:
+bb.ps.tmax = 50.0
+
 #ADCtime offsets w.r.t. bbhodo time
 bb.ps.adc.timeoffset =
 -2.0531 -1.91299
@@ -2368,6 +2372,10 @@ bb.ps.adc.gain =
 ## Starting from run 
 
 -------[ 2024-04-04 23:00:00 ]
+
+## Maximum time difference between cluster seed and additional clusters, set to 1000 ns by default
+# keep this cut wider until we more fully understand its effect:
+bb.ps.tmax = 50.0
 
 ##ADCtime offsets w.r.t. bbhodo time
 #bb.ps.adc.timeoffset =
