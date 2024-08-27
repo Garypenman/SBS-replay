@@ -59,12 +59,12 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
 
   double thetaHCAL = 34.7;
   double dHCAL = 17.0;
-  double dSBS = 2.25;
+  double dSBS = 2.8;
 
   double W2min=0.6, W2max=1.2;
   
-  double sbsmaxfield = 1.26;
-  double sbsfield = 1;
+  double sbsmaxfield = 1.3; //1.26?
+  double sbsfield = 1.0;
 
   const double Dgap = 48.0*2.54/100.0;
   
@@ -120,7 +120,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   vector<double> hodoparams, hcalparams;
   vector<double> HODOt0, HODOwL, HODOwR, vscint, HCALt0, HCALw;
   TString hodoconfigfile = "hodoparams.txt";
-  TString hcalconfigfile = "hcalparams.txt";
+ TString hcalconfigfile = "hcalparams.txt";
   
   //get hodo params if they exist otherwise fill vector of zeros
   ifstream hodoconfigin(hodoconfigfile);
@@ -196,12 +196,15 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   //declare histograms here
   int nbins=250;
   TH2D *htmean_hodoID_old = new TH2D("htmean_hodoID_old","OLD ;bar ID; bar t_{mean} [ns]", 90,-0.5,89.5, nbins,-30,30);
+  TH2D *htmean_hodoID_raw = new TH2D("htmean_hodoID_raw","RAW ;bar ID; bar t_{mean} [ns]", 90,-0.5,89.5, nbins,-30,30);
   TH2D *htmean_hodoID_new = new TH2D("htmean_hodoID_new","NEW ;bar ID; bar t_{mean} [ns]", 90,-0.5,89.5, nbins,-30,30);
 
   TH2D *htdiff_yhodo_old = new TH2D("htdiff_yhodo_old", "OLD; y_{hodo} (m); bar t_{L}-t_{R} [ns]", nbins,-0.3,0.3,nbins,-15,15);
+  TH2D *htdiff_yhodo_raw = new TH2D("htdiff_yhodo_raw", "RAW; y_{hodo} (m); bar t_{L}-t_{R} [ns]", nbins,-0.3,0.3,nbins,-15,15);
   TH2D *htdiff_yhodo_new = new TH2D("htdiff_yhodo_new", "NEW; y_{hodo} (m); bar t_{L}-t_{R} [ns]", nbins,-0.3,0.3,nbins,-15,15);
 
   TH2D *htmean_trigRF_old = new TH2D("htmean_trigRF_old", " OLD; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,2.004) ", 90,-0.5,89.5,nbins,-30,30);
+  TH2D *htmean_trigRF_raw = new TH2D("htmean_trigRF_raw", " RAW; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,2.004) ", 90,-0.5,89.5,nbins,-30,30);
   TH2D *htmean_trigRF_new = new TH2D("htmean_trigRF_new", " NEW; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,2.004) ", 90,-0.5,89.5,nbins,-30,30);
   
   TH2D *htmean_hcalID_old = new TH2D("htmean_hcalID_old","OLD ;hcal ID; clus t_{mean} [ns]", 288,-0.5,287.5,nbins,-30,30);
@@ -238,7 +241,8 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
 
     //calorimer energy cuts
     //is hcal energy reconstruction reliable?
-    //if (T->hcal_e < 0.05) continue;
+    if (T->hcal_e < 0.05) continue;
+    if (fabs(T->hcal_tdctimeblk)>20) continue; 
     if (T->ps_e<0.2) continue;
 
     //in principle we can clean up electron selection
@@ -413,34 +417,47 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     Mhcal(ipar_t0,ipar_w) += -eblkHCAL;
     Mhcal(ipar_w,ipar_t0) +=  -eblkHCAL;
     Mhcal(ipar_w,ipar_w) += pow(eblkHCAL,2);
-	
-    bhcal(ipar_t0) += tHCAL - (TOF_HCAL - HCALtcent);
-    bhcal(ipar_w) += (tHCAL - (TOF_HCAL - HCALtcent))*(-eblkHCAL);
+    
+    //bhcal(ipar_t0) += tHCAL - (TOF_HCAL - HCALtcent);
+    //bhcal(ipar_w) += (tHCAL - (TOF_HCAL - HCALtcent))*(-eblkHCAL);
+    bhcal(ipar_t0) += tHCAL;
+    bhcal(ipar_w) += tHCAL*(-eblkHCAL);
     //if this is the second time running, calculate corrected variables, otherwise
     //these will just come out the same as the "old" variables since all new factors
     //will be zero upon first iteration.
     double tleft_CORR = tleft - (etof-etof0) - HODOt0[ID] + HODOwL[ID]*totleft - dLEFT/vscint[ID];
     double tright_CORR = tright - (etof-etof0) - HODOt0[ID] + HODOwR[ID]*totright - dRIGHT/vscint[ID];
 
-    double tmean_CORR = 0.5 * (tleft_CORR + tright_CORR);
-	
-    double tmean_old = (tleft + tright)/2;
-    double tdiff_old = tleft - tright;
-	
-    double tHCAL_CORR = tHCAL - HCALt0[idblkHCAL] + HCALw[idblkHCAL]*eblkHCAL;
-	
     //calculate a corrected time difference without the propagation correction:
-    double tdiff_CORR = (tleft - HODOt0[ID]+ HODOwL[ID]*totleft) - (tright-HODOt0[ID]+HODOwR[ID]*totright);
-      
+    double tdiff_CORR = tleft_CORR - tright_CORR;
+    double tmean_CORR = 0.5 * (tleft_CORR + tright_CORR);
+
+    double tmean_old = T->hodo_tmean->at(0);
+    double tdiff_old = T->hodo_tdiff->at(0);
+    
+    double tmean_raw = (tleft + tright)/2;
+    double tdiff_raw = tleft - tright;
+    
+    //double tHCAL_CORR = tHCAL - (TOF_HCAL - TOF_HCAL) - HCALt0[idblkHCAL] + HCALw[idblkHCAL]*eblkHCAL;
+    double tHCAL_CORR = tHCAL - HCALt0[idblkHCAL] + HCALw[idblkHCAL]*eblkHCAL;
+    
+    
     //Fill histograms
     htmean_hodoID_old->Fill( ID, tmean_old );
+    htmean_hodoID_raw->Fill( ID, tmean_raw );
     htmean_hodoID_new->Fill( ID, tmean_CORR );
+
     htdiff_yhodo_old->Fill( yhodo, tdiff_old );
+    htdiff_yhodo_raw->Fill( yhodo, tdiff_raw );
     htdiff_yhodo_new->Fill( yhodo, tdiff_CORR );
+    
     htmean_trigRF_old->Fill( ID, tmean_old + trigtime - fmod(rftime,2.004) );
+    htmean_trigRF_raw->Fill( ID, tmean_raw + trigtime - fmod(rftime,2.004) );
     htmean_trigRF_new->Fill( ID, tmean_CORR+ trigtime - fmod(rftime,2.004) );
+
     htmean_hcalID_old->Fill( idblkHCAL, tHCAL );
     htmean_hcalID_new->Fill( idblkHCAL, tHCAL_CORR );
+
     htmean_hcale_old->Fill( eblkHCAL, tHCAL );
     htmean_hcale_new->Fill( eblkHCAL, tHCAL_CORR );
 	
@@ -458,7 +475,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
       //      << endl;
       
       htdiffHCAL_vs_HCALID_old->Fill( idblkHCAL, tHCAL-tmean_old);
-      htdiffHCAL_vs_HCALID_new->Fill( idblkHCAL, tHCAL-tmean_CORR-(TOF_HCAL-HCALtcent));
+      htdiffHCAL_vs_HCALID_new->Fill( idblkHCAL, tHCAL_CORR-tmean_CORR);
     }
   }//end of event loop
     

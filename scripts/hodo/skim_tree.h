@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Mon Aug 12 12:04:14 2024 by ROOT version 6.30/04
+// Wed Aug 14 19:18:49 2024 by ROOT version 6.30/04
 // from TTree T/Output of GEN tof Skim
 // found on file: /home/gpenman/vol/data/out_tof_gen2_H2.root
 //////////////////////////////////////////////////////////
@@ -75,6 +75,7 @@ public :
    Double_t        hcal_time;
    Double_t        coin_time;
    vector<double>  *hodo_tmean;
+   vector<double>  *hodo_tdiff;
    vector<double>  *hodo_tleft;
    vector<double>  *hodo_tright;
    vector<double>  *hodo_totleft;
@@ -155,6 +156,7 @@ public :
    TBranch        *b_hcal_time;   //!
    TBranch        *b_coin_time;   //!
    TBranch        *b_hodo_tmean;   //!
+   TBranch        *b_hodo_tdiff;   //!
    TBranch        *b_hodo_tleft;   //!
    TBranch        *b_hodo_tright;   //!
    TBranch        *b_hodo_totleft;   //!
@@ -249,6 +251,7 @@ void skim_tree::Init(TTree *tree)
 
    // Set object pointer
    hodo_tmean = 0;
+   hodo_tdiff = 0;
    hodo_tleft = 0;
    hodo_tright = 0;
    hodo_totleft = 0;
@@ -314,6 +317,7 @@ void skim_tree::Init(TTree *tree)
    fChain->SetBranchAddress("hcal_time", &hcal_time, &b_hcal_time);
    fChain->SetBranchAddress("coin_time", &coin_time, &b_coin_time);
    fChain->SetBranchAddress("hodo_tmean", &hodo_tmean, &b_hodo_tmean);
+   fChain->SetBranchAddress("hodo_tdiff", &hodo_tdiff, &b_hodo_tdiff);
    fChain->SetBranchAddress("hodo_tleft", &hodo_tleft, &b_hodo_tleft);
    fChain->SetBranchAddress("hodo_tright", &hodo_tright, &b_hodo_tright);
    fChain->SetBranchAddress("hodo_totleft", &hodo_totleft, &b_hodo_totleft);
