@@ -234,7 +234,6 @@ sbs.hcaldist = 10.0
 
 earm.theta = 29.8
 earm.pcentral = 3.37
-earm.magdist = 9.5
-earm.hcaldist = 9.5
+earm.ecaldist = 9.5
 
 

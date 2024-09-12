@@ -47,7 +47,7 @@
  4    -3201  5
 
 ==== Crate 8 type vme
-## TDCs for CDET (VETROC)
+## TDCs for CDET (VETROC) - adding to those of GRINCH
 ## slot model clear header mask     nchan ndata
  1    -3201  5
  2    -3201  5
@@ -64,11 +64,6 @@
 13    -3201  5
 14    -3201  5
 15    -3201  5
-16    -3201  5
-17    -3201  5
-18    -3201  5
-19    -3201  5
-20    -3201  5
 ## do we need a crate 9 ???  
 
 ==== Crate 9 type vme
@@ -79,6 +74,113 @@
  2    -250   3
  3    -250   3
 
+##crates 11-15 for ECAL (10 taken for beamline of all things...)
+==== Crate 11 type vme
+# slot  model  bank
+   3    -250     3  # ECal FADC
+   4    -250     3  # ECal FADC
+   5    -250     3  # ECal FADC
+   6    -250     3  # ECal FADC
+   7    -250     3  # ECal FADC
+   8    -250     3  # ECal FADC
+   9    -250     3  # ECal FADC
+  10    -250     3  # ECal FADC
+  11    -250     3  # ECal FADC
+  12    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  14    -250     3  # ECal FADC
+  15    -250     3  # ECal FADC
+  16    -250     3  # ECal FADC
+  17    -250     3  # ECal FADC
+  18    -250     3  # ECal FADC
+  19    -250     3  # ECal FADC
+  20    -250     3  # ECal FADC
+
+==== Crate 12 type vme
+# slot  model  bank
+   3    -250     3  # ECal FADC
+   4    -250     3  # ECal FADC
+   5    -250     3  # ECal FADC
+   6    -250     3  # ECal FADC
+   7    -250     3  # ECal FADC
+   8    -250     3  # ECal FADC
+   9    -250     3  # ECal FADC
+  10    -250     3  # ECal FADC
+  11    -250     3  # ECal FADC
+  12    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  14    -250     3  # ECal FADC
+  15    -250     3  # ECal FADC
+  16    -250     3  # ECal FADC
+  17    -250     3  # ECal FADC
+  18    -250     3  # ECal FADC
+  19    -250     3  # ECal FADC
+  20    -250     3  # ECal FADC
+
+==== Crate 13 type vme
+# slot  model  bank
+   3    -250     3  # ECal FADC
+   4    -250     3  # ECal FADC
+   5    -250     3  # ECal FADC
+   6    -250     3  # ECal FADC
+   7    -250     3  # ECal FADC
+   8    -250     3  # ECal FADC
+   9    -250     3  # ECal FADC
+  10    -250     3  # ECal FADC
+  11    -250     3  # ECal FADC
+  12    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  14    -250     3  # ECal FADC
+  15    -250     3  # ECal FADC
+  16    -250     3  # ECal FADC
+  17    -250     3  # ECal FADC
+  18    -250     3  # ECal FADC
+  19    -250     3  # ECal FADC
+  20    -250     3  # ECal FADC
+
+==== Crate 14 type vme
+# slot  model  bank
+   3    -250     3  # ECal FADC
+   4    -250     3  # ECal FADC
+   5    -250     3  # ECal FADC
+   6    -250     3  # ECal FADC
+   7    -250     3  # ECal FADC
+   8    -250     3  # ECal FADC
+   9    -250     3  # ECal FADC
+  10    -250     3  # ECal FADC
+  11    -250     3  # ECal FADC
+  12    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  14    -250     3  # ECal FADC
+  15    -250     3  # ECal FADC
+  16    -250     3  # ECal FADC
+  17    -250     3  # ECal FADC
+  18    -250     3  # ECal FADC
+  19    -250     3  # ECal FADC
+  20    -250     3  # ECal FADC
+
+==== Crate 15 type vme
+# slot  model  bank
+   3    -250     3  # ECal FADC
+   4    -250     3  # ECal FADC
+   5    -250     3  # ECal FADC
+   6    -250     3  # ECal FADC
+   7    -250     3  # ECal FADC
+   8    -250     3  # ECal FADC
+   9    -250     3  # ECal FADC
+  10    -250     3  # ECal FADC
+  11    -250     3  # ECal FADC
+  12    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  13    -250     3  # ECal FADC
+  14    -250     3  # ECal FADC
+  15    -250     3  # ECal FADC
+  16    -250     3  # ECal FADC
+  17    -250     3  # ECal FADC
+  18    -250     3  # ECal FADC
 
 ## Proposed crates (16-17) for SBS side (HCal + CDet + Hadron arm GEMs, etc...)
 # Date/Time = Fri Sep  14 09:33:00 2018
