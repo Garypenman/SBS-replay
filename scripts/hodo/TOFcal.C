@@ -61,7 +61,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   double dHCAL = 17.0;
   double dSBS = 2.8;
 
-  double W2min=0.6, W2max=1.2;
+  double W2min=0.0, W2max=1.7;
   
   double sbsmaxfield = 1.3; //1.26?
   double sbsfield = 1.0;
@@ -219,6 +219,9 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
 
   TH2D *hdxdy = new TH2D("hdxdy",";#Deltay (m); #Deltax (m)",250,-1.25,1.25,250,-1.25,1.25);
 
+  TH1D *htcoin = new TH1D("htcoin","",250,-20,20);
+
+  
   //event loop stuff
   skim_tree *T = new skim_tree(C);
   int treenum=-1,oldtreenum=-1;
