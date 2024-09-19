@@ -104,6 +104,9 @@ sbs.hcal.ncols = 12
 ## Default tdc timewalk calibration parameters
 sbs.hcal.tdc.tw = 0.78 0.50
 
+## default max number of clusters:
+sbs.hcal.nmax_cluster = 30
+
 ## Position of first module
 sbs.hcal.xyz = -2.190625 -0.85217 0.0 #Overridden by detailed ypos and xpos below
 ## Space between modules
