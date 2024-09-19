@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Wed Aug 14 19:18:49 2024 by ROOT version 6.30/04
+// Wed Sep 18 08:54:01 2024 by ROOT version 6.30/04
 // from TTree T/Output of GEN tof Skim
 // found on file: /home/gpenman/vol/data/out_tof_gen2_H2.root
 //////////////////////////////////////////////////////////
@@ -70,10 +70,14 @@ public :
    Double_t        dev;
    Double_t        ps_atime;
    Double_t        sh_atime;
-   Double_t        hcal_atime;
+   Double_t        hcal_adctime;
+   Double_t        hcal_atimeblk;
    Double_t        coin_atime;
-   Double_t        hcal_time;
+   Double_t        hcal_tdctime;
+   Double_t        hcal_tdctimeblk;
    Double_t        coin_time;
+   vector<double>  *hcal_refid;
+   vector<double>  *hcal_ref;
    vector<double>  *hodo_tmean;
    vector<double>  *hodo_tdiff;
    vector<double>  *hodo_tleft;
@@ -82,6 +86,8 @@ public :
    vector<double>  *hodo_totright;
    vector<double>  *hodo_timehitpos;
    vector<double>  *hodo_bar;
+   Double_t        hodo_nclus;
+   Double_t        hodo_nbar;
    Double_t        gr_adc;
    Double_t        gr_size;
    Double_t        gr_tmean;
@@ -151,10 +157,14 @@ public :
    TBranch        *b_dev;   //!
    TBranch        *b_ps_atime;   //!
    TBranch        *b_sh_atime;   //!
-   TBranch        *b_hcal_atime;   //!
+   TBranch        *b_hcal_adctime;   //!
+   TBranch        *b_hcal_atimeblk;   //!
    TBranch        *b_coin_atime;   //!
-   TBranch        *b_hcal_time;   //!
+   TBranch        *b_hcal_tdctime;   //!
+   TBranch        *b_hcal_tdctimeblk;   //!
    TBranch        *b_coin_time;   //!
+   TBranch        *b_hcal_refid;   //!
+   TBranch        *b_hcal_ref;   //!
    TBranch        *b_hodo_tmean;   //!
    TBranch        *b_hodo_tdiff;   //!
    TBranch        *b_hodo_tleft;   //!
@@ -163,6 +173,8 @@ public :
    TBranch        *b_hodo_totright;   //!
    TBranch        *b_hodo_timehitpos;   //!
    TBranch        *b_hodo_bar;   //!
+   TBranch        *b_hodo_nclus;   //!
+   TBranch        *b_hodo_nbar;   //!
    TBranch        *b_gr_adc;   //!
    TBranch        *b_gr_size;   //!
    TBranch        *b_gr_tmean;   //!
@@ -250,6 +262,8 @@ void skim_tree::Init(TTree *tree)
    // (once per file to be processed).
 
    // Set object pointer
+   hcal_refid = 0;
+   hcal_ref = 0;
    hodo_tmean = 0;
    hodo_tdiff = 0;
    hodo_tleft = 0;
@@ -312,10 +326,14 @@ void skim_tree::Init(TTree *tree)
    fChain->SetBranchAddress("dev", &dev, &b_dev);
    fChain->SetBranchAddress("ps_atime", &ps_atime, &b_ps_atime);
    fChain->SetBranchAddress("sh_atime", &sh_atime, &b_sh_atime);
-   fChain->SetBranchAddress("hcal_atime", &hcal_atime, &b_hcal_atime);
+   fChain->SetBranchAddress("hcal_adctime", &hcal_adctime, &b_hcal_adctime);
+   fChain->SetBranchAddress("hcal_atimeblk", &hcal_atimeblk, &b_hcal_atimeblk);
    fChain->SetBranchAddress("coin_atime", &coin_atime, &b_coin_atime);
-   fChain->SetBranchAddress("hcal_time", &hcal_time, &b_hcal_time);
+   fChain->SetBranchAddress("hcal_tdctime", &hcal_tdctime, &b_hcal_tdctime);
+   fChain->SetBranchAddress("hcal_tdctimeblk", &hcal_tdctimeblk, &b_hcal_tdctimeblk);
    fChain->SetBranchAddress("coin_time", &coin_time, &b_coin_time);
+   fChain->SetBranchAddress("hcal_refid", &hcal_refid, &b_hcal_refid);
+   fChain->SetBranchAddress("hcal_ref", &hcal_ref, &b_hcal_ref);
    fChain->SetBranchAddress("hodo_tmean", &hodo_tmean, &b_hodo_tmean);
    fChain->SetBranchAddress("hodo_tdiff", &hodo_tdiff, &b_hodo_tdiff);
    fChain->SetBranchAddress("hodo_tleft", &hodo_tleft, &b_hodo_tleft);
@@ -324,6 +342,8 @@ void skim_tree::Init(TTree *tree)
    fChain->SetBranchAddress("hodo_totright", &hodo_totright, &b_hodo_totright);
    fChain->SetBranchAddress("hodo_timehitpos", &hodo_timehitpos, &b_hodo_timehitpos);
    fChain->SetBranchAddress("hodo_bar", &hodo_bar, &b_hodo_bar);
+   fChain->SetBranchAddress("hodo_nclus", &hodo_nclus, &b_hodo_nclus);
+   fChain->SetBranchAddress("hodo_nbar", &hodo_nbar, &b_hodo_nbar);
    fChain->SetBranchAddress("gr_adc", &gr_adc, &b_gr_adc);
    fChain->SetBranchAddress("gr_size", &gr_size, &b_gr_size);
    fChain->SetBranchAddress("gr_tmean", &gr_tmean, &b_gr_tmean);

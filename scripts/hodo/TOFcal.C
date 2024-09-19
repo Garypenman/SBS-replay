@@ -4,6 +4,7 @@
 #include "TTree.h"
 #include "TH1D.h"
 #include "TH2D.h"
+#include "TF1.h"
 #include "TFile.h"
 #include <iostream>
 #include <fstream>
@@ -23,34 +24,12 @@ const double Mp=0.938272;
 void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="TOFcal_out.root"){
 
   TString currentline;
-
-  /*
-  ifstream configfile(inputfilename);
-  
-  if( !configfile ) return;
-  
-  TChain *C = new TChain("T");
-  
-  while( currentline.ReadLine(configfile) && !currentline.BeginsWith("endlist") ){
-    if( !currentline.BeginsWith("#") ){
-      C->Add(currentline.Data());
-    }
-  }
-
-  TCut globalcut = "";
-  
-  while( currentline.ReadLine(configfile) && !currentline.BeginsWith("endcut") ){
-    if( !currentline.BeginsWith("#") ){
-      globalcut += currentline.Data();
-    }
-  }
-  */
   
   TChain *C = new TChain("T");
   C->Add("~/vol/data/out_tof_gen2_H2.root");
   
   //Default reference PMTs for aligning all other PMTs:
-  int hodorefID = 43; // reference BAR (not PMT); we'll set the LEFT PMT to the reference by convention:
+  int hodorefID = 44; // reference BAR (not PMT); we'll set the LEFT PMT to the reference by convention:
   int hcalrefID = 199; //row 16 column 6
   
   double zhodo = 1.854454; //meters
@@ -70,38 +49,6 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   
   double Ebeam = 4.291;
   
-  /*
-  while( currentline.ReadLine(configfile) && !currentline.BeginsWith("endconfig") ){
-    if( !currentline.BeginsWith("#") ){
-      TObjArray *currentline_tokens = currentline.Tokenize(" ");
-      if( currentline_tokens->GetEntries() >= 2 ){
-	TString skey = ( (TObjString*) (*currentline_tokens)[0] )->GetString();
-
-	TString sval = ( (TObjString*) (*currentline_tokens)[1] )->GetString();
-	if( skey.BeginsWith("hodorefID") ){
-	  hodorefID = sval.Atoi();
-	}
-
-	if( skey.BeginsWith("hcalrefID") ){
-	  hcalrefID = sval.Atoi();
-	}
-
-	if( skey.BeginsWith("zhodo") ){
-	  zhodo = sval.Atof();
-	}
-
-	if( skey.BeginsWith("Lbar_hodo") ){
-	  Lbar_hodo = sval.Atof();
-	}
-
-	if( skey.BeginsWith("etof0") ){
-	  etof0 = sval.Atof();
-	}
-      }
-    }
- }
-  */
-
   thetaHCAL *= TMath::Pi()/180.0;
   
   TVector3 zaxis_HCAL(-sin(thetaHCAL),0,cos(thetaHCAL));
@@ -109,18 +56,18 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   TVector3 yaxis_HCAL = (zaxis_HCAL.Cross(xaxis_HCAL)).Unit();
   
   TVector3 HCALorigin = dHCAL*zaxis_HCAL;
-
-
+  
   //int nparams_hodo = 3*180; //offset, walk correction, propagation speed for left and right PMTs for 90 bars minus offset fixed at zero for reference PMT
   //actually, vscint should be determined per paddle;
-  int nparams_hodo = 180+2*90; //We actually only really want one zero offset (paddle-specific) that applies to the mean time, so we need 90 zero offsets, 90 vscint values, and 180 walk correction slopes.
+  int nparams_hodo = 180+2*90 + 90; //We actually only really want one zero offset (paddle-specific) that applies to the mean time, so we need 90 zero offsets, 90 vscint values, and 180 walk correction slopes.
   int nparams_HCAL = 288*2; //offset and walk correction for 288 modules.
 
   //read in previously generated config for iterative calibration
   vector<double> hodoparams, hcalparams;
-  vector<double> HODOt0, HODOwL, HODOwR, vscint, HCALt0, HCALw;
+  vector<double> HODOt0, HODOwL, HODOwR, vscint, tpad_rf; 
+  vector<double> HCALt0, HCALw;
   TString hodoconfigfile = "hodoparams.txt";
- TString hcalconfigfile = "hcalparams.txt";
+  TString hcalconfigfile = "hcalparams.txt";
   
   //get hodo params if they exist otherwise fill vector of zeros
   ifstream hodoconfigin(hodoconfigfile);
@@ -157,6 +104,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     //HODOt0R.push_back( hodoparams[i+90] );
     HODOwL.push_back( hodoparams[i+180] );
     HODOwR.push_back( hodoparams[i+270] );
+    tpad_rf.push_back( hodoparams[i+360] );
     vscint.push_back( 1.0/hodoparams[i+90] );
   }
   
@@ -203,9 +151,9 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   TH2D *htdiff_yhodo_raw = new TH2D("htdiff_yhodo_raw", "RAW; y_{hodo} (m); bar t_{L}-t_{R} [ns]", nbins,-0.3,0.3,nbins,-15,15);
   TH2D *htdiff_yhodo_new = new TH2D("htdiff_yhodo_new", "NEW; y_{hodo} (m); bar t_{L}-t_{R} [ns]", nbins,-0.3,0.3,nbins,-15,15);
 
-  TH2D *htmean_trigRF_old = new TH2D("htmean_trigRF_old", " OLD; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,2.004) ", 90,-0.5,89.5,nbins,-30,30);
-  TH2D *htmean_trigRF_raw = new TH2D("htmean_trigRF_raw", " RAW; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,2.004) ", 90,-0.5,89.5,nbins,-30,30);
-  TH2D *htmean_trigRF_new = new TH2D("htmean_trigRF_new", " NEW; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,2.004) ", 90,-0.5,89.5,nbins,-30,30);
+  TH2D *htmean_trigRF_old = new TH2D("htmean_trigRF_old", " OLD; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,T_{RF}) ", 90,-0.5,89.5,nbins,-30,30);
+  TH2D *htmean_trigRF_raw = new TH2D("htmean_trigRF_raw", " RAW; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,T_{RF}) ", 90,-0.5,89.5,nbins,-30,30);
+  TH2D *htmean_trigRF_new = new TH2D("htmean_trigRF_new", " NEW; bar ID; bar t_{mean} + bb_{trig} - fmod{rf,T_{RF}) ", 90,-0.5,89.5,nbins,-30,30);
   
   TH2D *htmean_hcalID_old = new TH2D("htmean_hcalID_old","OLD ;hcal ID; clus t_{mean} [ns]", 288,-0.5,287.5,nbins,-30,30);
   TH2D *htmean_hcalID_new = new TH2D("htmean_hcalID_new","NEW ;hcal ID; clus t_{mean} [ns]", 288,-0.5,287.5,nbins,-30,30);
@@ -220,7 +168,37 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   TH2D *hdxdy = new TH2D("hdxdy",";#Deltay (m); #Deltax (m)",250,-1.25,1.25,250,-1.25,1.25);
 
   TH1D *htcoin = new TH1D("htcoin","",250,-20,20);
+  
+  TH1D *hRes_all = new TH1D("hRes_all","",nbins,-4,4);
+  TH1D *hRes_all_corr = new TH1D("hRes_all_corr","",nbins,-4,4);
+  TH1D *hRes[90];
+  TH1D *hRes_corr[90];
+  fout->mkdir("hRes_bars");
+  fout->cd("hRes_bars");
+  for( int i=0; i<90; i++){
+    hRes[i] = new TH1D(Form("hRes_%i",i),"",nbins,-4,4);
+    hRes_corr[i] = new TH1D(Form("hRes_corr_%i",i),"",nbins,-4,4);
+  }
+  fout->cd();
+  
+  TH1D *hdt_vz_all = new TH1D("hdt_vz_all","",nbins,200,250);
+  TH1D *hdt_vz_all_corr = new TH1D("hdt_vz_all_corr","",nbins,200,250);
+  TH2D *hdt_vz = new TH2D("hdt_vz","",90,-0.5,89.5,nbins,200,250);
+  TH2D *hdt_vz_corr = new TH2D("hdt_vz_corr","",90,-0.5,89.5,nbins,200,250);
 
+  TH1D *hdtHCAL_vz_all = new TH1D("hdtHCAL_vz_all","",nbins,-1,-1);
+  TH1D *hdtHCAL_vz_all_corr = new TH1D("hdtHCAL_vz_all_corr","",nbins,-1,-1);
+  TH2D *hdtHCAL_vz = new TH2D("hdtHCAL_vz","",90,-0.5,89.5,nbins,-1,-1);
+  TH2D *hdtHCAL_vz_corr = new TH2D("hdtHCAL_vz_corr","",90,-0.5,89.5,nbins,-1,-1);
+
+  TH2D *htrig_BBvSBS = new TH2D("htrig_BBvSBS","BBTrig as measured in 1190 vs F1; 1190 t_{trig} [ns]; F1 t_{trig} [ns]",nbins,-1,-1,nbins,-1,-1);
+  TH2D *hRF_BBvSBS = new TH2D("hRF_BBvSBS","RF as measured in 1190 vs F1; 1190 t_{rf} [ns]; F1 t_{rf} [ns]",nbins,-1,-1,nbins,-1,-1);
+  TH2D *hBB_TRIGvRF = new TH2D("hBB_TRIGvRF","Trigger and RF in 1190; t_{trig} [ns]; t_{rf} [ns]",nbins,-1,-1,nbins,-1,-1);
+  TH2D *hSBS_TRIGvRF = new TH2D("hSBS_TRIGvRF","Trigger and RF in F1; t_{trig} [ns]; t_{rf} [ns]",nbins,-1,-1,nbins,-1,-1);
+  
+  
+  
+  
   
   //event loop stuff
   skim_tree *T = new skim_tree(C);
@@ -229,7 +207,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   for( long ev=0; ev<nev; ev++ ){
     
     T->GetEntry(ev);
-    if( ev % 10000 == 0 ) cout << "nevent = " << ev << " / " << nev << endl;
+    if( ev % 100000 == 0 ) cout << "nevent = " << ev << " / " << nev << endl;
     
     //define some simple cuts here
     //skim file takes care of exclusive
@@ -245,7 +223,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     //calorimer energy cuts
     //is hcal energy reconstruction reliable?
     if (T->hcal_e < 0.05) continue;
-    if (fabs(T->hcal_tdctimeblk)>20) continue; 
+    //if (fabs(T->hcal_tdctimeblk)>20) continue; 
     if (T->ps_e<0.2) continue;
 
     //in principle we can clean up electron selection
@@ -255,7 +233,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
 
     //quasi invariant mass squared cut
     //for GEN2 can leave fairly wide. even 0<W2<2 would probably be fine
-    if (T->W2 < 0 || T->W2 > 2.0) continue;
+    //if (T->W2 < 0 || T->W2 > 2.0) continue;
     
 
     //grab needed track parameters:
@@ -264,20 +242,32 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     double etof = pathl/0.299792458; //electron TOF from vertex to hodo.
     
     //bbcal trigger time
-    double trigtime = T->trigtime; 
+    //double trigtime = T->trigtime; 
     
     //rf time
+    double trigtime=-999;
     double rftime=-999.;
     for(uint i=0; i<T->tdctrig_id->size(); i++){
+      if(T->tdctrig_id->at(i)==5) trigtime = T->tdctrig->at(i);
       if(T->tdctrig_id->at(i)==4) rftime = T->tdctrig->at(i);
     }
     if (rftime==-999) continue;
+
+    //hcal F1 rf time
+    double hcal_rftime=-999.;
+    double hcal_trigtime=-999.;
+    for(uint i=0; i<T->hcal_refid->size(); i++){
+      if(T->hcal_refid->at(i)==2) hcal_trigtime = T->hcal_ref->at(i);
+      if(T->hcal_refid->at(i)==3) hcal_rftime = T->hcal_ref->at(i);
+    }
+    if (hcal_trigtime==-999 || hcal_rftime == -999) continue;
+
+    //hcal_rftime = hcal_rftime + hcal_trigtime;
+
     
     //relevant hodo cluster parameters
     double tleft = T->hodo_tleft->at(0);
-    //tleft += trigtime - fmod(rftime,2.004);
     double tright = T->hodo_tright->at(0);
-    //tright += trigtime - fmod(rftime,2.004);
     double totleft = T->hodo_totleft->at(0);
     double totright = T->hodo_totright->at(0);
 
@@ -289,10 +279,10 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     double xHCAL = T->hcal_x;
     double yHCAL = T->hcal_y;
     int idblkHCAL = (int) T->hcal_id - 1;
-    double tHCAL = T->hcal_time;
+    double tHCAL = T->hcal_tdctimeblk;
     double eblkHCAL = T->hcal_e;
       
-      
+    
     // how to define our chi2 statistic? We want to correct all hodo PMT times to tvertex = 0:
     // tPMT = etof + t0 - walk * TOT + d/vscint
     // chi2 = sum_{i=1}^N \sum_{j=1}^Nhit (tPMT-etof-t0+walk*TOT - d/vscint)^2
@@ -374,7 +364,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     //int ipar_t0R = ID+90;
     int ipar_wL = ID+180;
     int ipar_wR = ID+270;
-      
+    
     //sum_i (tL - etof - t0 + w*TOTL - dL/v) = 0  
     // tL-etof = t0L -w*TOTL + dL/v
     //there is a more elegant way to do this:
@@ -433,8 +423,12 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
 
     //calculate a corrected time difference without the propagation correction:
     double tdiff_CORR = tleft_CORR - tright_CORR;
-    double tmean_CORR = 0.5 * (tleft_CORR + tright_CORR);
-
+    double tmean_CORR = 0.5 * (tleft_CORR + tright_CORR);// + tpad_rf[ID];
+    //how to get the rf paddle offsets from the global fit?
+    //can start atleast with 90 histos?
+    //use fmod(dt_vz,T_rf)
+    //tpad_rf[i] = hR[i]->GetMean()?
+    
     double tmean_old = T->hodo_tmean->at(0);
     double tdiff_old = T->hodo_tdiff->at(0);
     
@@ -444,7 +438,24 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     //double tHCAL_CORR = tHCAL - (TOF_HCAL - TOF_HCAL) - HCALt0[idblkHCAL] + HCALw[idblkHCAL]*eblkHCAL;
     double tHCAL_CORR = tHCAL - HCALt0[idblkHCAL] + HCALw[idblkHCAL]*eblkHCAL;
     
+
+    //hall B vertex time calcs
+    double rf_offset = -1.0;//1.0;
+    double T_rf = 2.008;
+    double t_vz = tmean_CORR + trigtime;
+    double t_start = rftime + vz/0.299792458;
+    double dt_vz = t_vz - t_start;
+    double dt_vz_corr = dt_vz - tpad_rf[ID];
+    double tR = fmod(dt_vz,T_rf) + rf_offset;
+    double tR_corr = fmod(dt_vz_corr,T_rf) + rf_offset;
+
+    double tHCAL_vz = tHCAL + hcal_trigtime;
+    double tHCAL_start = hcal_rftime + vz/0.299792458; 
     
+    double dtHCAL_vz = tHCAL_vz - tHCAL_start;
+    double dRHCAL = fmod(dtHCAL_vz, T_rf);
+
+
     //Fill histograms
     htmean_hodoID_old->Fill( ID, tmean_old );
     htmean_hodoID_raw->Fill( ID, tmean_raw );
@@ -454,10 +465,35 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     htdiff_yhodo_raw->Fill( yhodo, tdiff_raw );
     htdiff_yhodo_new->Fill( yhodo, tdiff_CORR );
     
-    htmean_trigRF_old->Fill( ID, tmean_old + trigtime - fmod(rftime,2.004) );
-    htmean_trigRF_raw->Fill( ID, tmean_raw + trigtime - fmod(rftime,2.004) );
-    htmean_trigRF_new->Fill( ID, tmean_CORR+ trigtime - fmod(rftime,2.004) );
+    htmean_trigRF_old->Fill( ID, tmean_old + trigtime - fmod(rftime,T_rf) );
+    htmean_trigRF_raw->Fill( ID, tmean_raw + trigtime - fmod(rftime,T_rf) );
+    htmean_trigRF_new->Fill( ID, tmean_CORR+ trigtime - fmod(rftime,T_rf) );
 
+    
+    //hodoscope resids (fmod times)
+    hRes_all->Fill(tR);
+    hRes_all_corr->Fill(tR_corr);
+    hRes[ID]->Fill(tR);
+    hRes_corr[ID]->Fill(tR_corr);
+
+    //t_vz - t_hodo_start
+    hdt_vz_all->Fill(dt_vz);
+    hdt_vz_all_corr->Fill(dt_vz_corr);
+    hdt_vz->Fill(ID, dt_vz);
+    hdt_vz_corr->Fill(ID,dt_vz_corr);
+
+    //hcal resids (fmods)? later
+
+    //t_vz_hcal - t_hcal_start
+    if(idblkHCAL==199){
+      hdtHCAL_vz_all->Fill(dtHCAL_vz);
+    }
+    
+    htrig_BBvSBS->Fill(trigtime, hcal_trigtime);
+    hRF_BBvSBS->Fill(rftime, hcal_rftime);
+    hBB_TRIGvRF->Fill(rftime, trigtime);
+    hSBS_TRIGvRF->Fill(hcal_rftime, hcal_trigtime);
+    
     htmean_hcalID_old->Fill( idblkHCAL, tHCAL );
     htmean_hcalID_new->Fill( idblkHCAL, tHCAL_CORR );
 
@@ -466,7 +502,6 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
 	
     hdxdy->Fill( deltay,deltax );
       
-    //if( W2min < W2 && W2 < W2max && sqrt(pow(deltax,2)+pow(deltay,2))<=0.24 && eblkHCAL>0.02 ){
     if( eblkHCAL>0.02 && W2>W2min && W2<W2max && sqrt(pow(deltax,2)+pow(deltay,2))<=0.24 ){
       // cout << "(Eprime,etheta,ephi)=("
       //      << ep.Mag() << ", " << etheta*57.3 << ", "
@@ -487,9 +522,18 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
 
   TDecompSVD Ahcal(Mhcal);
   Ahcal.Solve(bhcal);
+
+  TF1 *fres[90]; 
+  for(int i=0; i<90; i++){
+    fres[i] = new TF1(Form("fres_%i",i),"gaus",-2,2);
+    int maxbin = hRes_corr[i]->GetMaximumBin();
+    double max = hRes_corr[i]->GetXaxis()->GetBinCenter(maxbin);
+    hRes_corr[i]->Fit(fres[i],"Q","",max-0.5,max+0.5);
+    bhodo[i+360] = tpad_rf[i] + fres[i]->GetParameter(1);
+  }
   
-  bhodo.Print();
-  bhcal.Print();
+  //bhodo.Print();
+  //bhcal.Print();
 	      
   //double HODOt0[90], HODOwL[90], HODOwR[90], vscint[90];
   //double HCALt0[288], HCALw[288];

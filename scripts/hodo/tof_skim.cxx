@@ -113,7 +113,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   TTreeReaderArray<Double_t> bb_tr_tg_ph = {rd,"bb.tr.tg_ph"};
   TTreeReaderArray<Double_t> bb_tr_tg_y = {rd,"bb.tr.tg_y"};
   
-  TTreeReaderValue<Double_t> bb_gem_trigtime = {rd, "bb.gem.trigtime"};
+  //TTreeReaderValue<Double_t> bb_gem_trigtime = {rd, "bb.gem.trigtime"};
   TTreeReaderArray<Double_t> bb_gem_track_nhits = {rd, "bb.gem.track.nhits"};
 
   //BBCal main cluster
@@ -143,6 +143,11 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   TTreeReaderArray<Double_t> sbs_hcal_clus_col = {rd, "sbs.hcal.clus.col"};
   TTreeReaderArray<Double_t> sbs_hcal_clus_id = {rd, "sbs.hcal.clus.id"};
 
+  //hcal trigger stuff
+  TTreeReaderValue<Int_t> Ndata_sbs_hcal_Ref_tdcelemID = {rd, "Ndata.sbs.hcal.Ref.tdcelemID"};
+  TTreeReaderArray<Double_t> sbs_hcal_Ref_tdcelemID = {rd, "sbs.hcal.Ref.tdcelemID"};
+  TTreeReaderArray<Double_t> sbs_hcal_Ref_tdc = {rd, "sbs.hcal.Ref.tdc"};
+  
   //Event info
   TTreeReaderValue<ULong64_t> fEvtHdr_fEvtTime = {rd, "fEvtHdr.fEvtTime"};
   TTreeReaderValue<unsigned int> fEvtHdr_fEvtNum = {rd, "fEvtHdr.fEvtNum"};
@@ -221,11 +226,10 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
 
   tree->Branch("bb_pathl",&bb_pathl);
   
-  double bb_tr_nhits, bb_ntr, trigtime;
+  double bb_tr_nhits, bb_ntr;
   tree->Branch("bb_tr_nhits",&bb_tr_nhits);
   tree->Branch("bb_ntr",&bb_ntr);
-  tree->Branch("trigtime",&trigtime);
-
+  
   tree->Branch("sh_e",&sh_e);
   tree->Branch("sh_x",&sh_x);
   tree->Branch("sh_y",&sh_y);
@@ -265,6 +269,12 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   tree->Branch("hcal_tdctimeblk",&hcal_tdctimeblk);
   tree->Branch("coin_time",&coin_time);
   //tree->Branch("coin_time_corr",&coin_time_corr);
+
+  vector<double> hcal_refid;
+  vector<double> hcal_ref;
+  tree->Branch("hcal_refid",&hcal_refid);
+  tree->Branch("hcal_ref",&hcal_ref);
+  
   
   vector<double> hodo_tmean;
   vector<double> hodo_tdiff;
@@ -274,6 +284,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   vector<double> hodo_totright;
   vector<double> hodo_timehitpos;
   vector<double> hodo_bar;
+  double hodo_nclus, hodo_nbar;
   tree->Branch("hodo_tmean",&hodo_tmean);
   tree->Branch("hodo_tdiff",&hodo_tdiff);
   tree->Branch("hodo_tleft",&hodo_tleft);
@@ -282,6 +293,8 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   tree->Branch("hodo_totright",&hodo_totright);
   tree->Branch("hodo_timehitpos",&hodo_timehitpos);
   tree->Branch("hodo_bar",&hodo_bar);
+  tree->Branch("hodo_nclus",&hodo_nclus);
+  tree->Branch("hodo_nbar",&hodo_nbar);
   
   double gr_adc,gr_size,gr_tmean,gr_totmean,gr_trindex,gr_xmean,gr_ymean,gr_nclus,gr_ngoodhits,gr_ntrackmatch;
   tree->Branch("gr_adc",&gr_adc);
@@ -322,6 +335,12 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   tree->Branch("tdctrig_id",&tdctrig_id);
   tree->Branch("tdctrig",&tdctrig);
 
+  double bb_trigtime,bb_rftime,sbs_trigtime,sbs_rftime;
+  tree->Branch("bb_trigtime",&bb_trigtime);
+  tree->Branch("bb_rftime",&bb_rftime);
+  tree->Branch("sbs_trigtime",&sbs_trigtime);
+  tree->Branch("sbs_rftime",&sbs_rftime);
+  
   //unique event id for using brufit splot fitting
   Long64_t UID=-1;
   tree->Branch("UID",&UID);
@@ -392,7 +411,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
 
     bb_pathl = bb_tr_pathl[0];
 
-    trigtime = *bb_gem_trigtime;
+    //trigtime = *bb_gem_trigtime;
     bb_tr_nhits = bb_gem_track_nhits[0];
     bb_ntr = *bb_tr_n;
     
@@ -436,7 +455,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     double sbsdist = 2.8;
     double Dgap = 48.0*2.54/100.0; //about 1.22 m
     double BdL = sbsfield * sbsmaxfield * Dgap;
-    double proton_deflection = tan( 0.3 * BdL / Qp4.Mag() ) * (hcal_dist - (sbsdist + Dgap/2.0) );
+    double proton_deflection = tan( 0.3 * BdL / Rp4.Rho() ) * (hcal_dist - (sbsdist + Dgap/2.0) );
 
     //Now we need to calculate the "true" trajectory bend angle for the electron from the reconstructed angles:
     TVector3 enhat_tgt( bb_th_tg, bb_ph_tg, 1.0 );
@@ -475,7 +494,9 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     coin_time = hcal_tdctime - bb_hodotdc_clus_bar_tdc_meantime[0];
     //int hodo_barid = (int) bb_hodotdc_clus_bar_tdc_id[0];
     //coin_time_corr = coin_time - hodo_tcoin_means[hodo_barid]; 
+    hodo_nclus = *Ndata_bb_hodotdc_clus_bar_tdc_id;
     int nhodo = *Ndata_bb_hodotdc_clus_bar_tdc_id;
+    hodo_nbar = nhodo;
     hodo_tmean.clear();
     hodo_tdiff.clear();
     hodo_tleft.clear();
@@ -499,10 +520,28 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     tdctrig_id.clear();
     tdctrig.clear();
     int ntdctrig = *Ndata_bb_tdctrig_tdcelemID;
+    bb_trigtime=-999;
+    bb_rftime=-999;
     for (int i=0; i<ntdctrig; i++){
       tdctrig_id.push_back(bb_tdctrig_tdcelemID[i]);
       tdctrig.push_back(bb_tdctrig_tdc[i]);
+      if(bb_tdctrig_tdcelemID[i]==4) bb_rftime=bb_tdctrig_tdc[i];
+      if(bb_tdctrig_tdcelemID[i]==5) bb_trigtime=bb_tdctrig_tdc[i];
     }
+    if(bb_rftime == -999 || bb_trigtime == -999) continue;
+
+    hcal_refid.clear();
+    hcal_ref.clear();
+    int nhcalref = *Ndata_sbs_hcal_Ref_tdcelemID;
+    sbs_trigtime=-999;
+    sbs_rftime=-999;
+    for (int i=0; i<nhcalref; i++){
+      hcal_refid.push_back(sbs_hcal_Ref_tdcelemID[i]);
+      hcal_ref.push_back(sbs_hcal_Ref_tdc[i]);
+      if(sbs_hcal_Ref_tdcelemID[i]==2) sbs_trigtime=sbs_hcal_Ref_tdc[i];
+      if(sbs_hcal_Ref_tdcelemID[i]==3) sbs_rftime=sbs_hcal_Ref_tdc[i];
+    }
+    if(sbs_rftime == -999 || sbs_trigtime == -999) continue;
     
     gr_adc = *bb_grinch_tdc_clus_adc;
     gr_size = *bb_grinch_tdc_clus_size;
