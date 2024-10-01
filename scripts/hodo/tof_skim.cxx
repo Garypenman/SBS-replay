@@ -200,7 +200,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   TTree *tree = new TTree("T","Output of GEN tof Skim");
   double Q2, W2, eps, nu, x_bj;
   double bb_x,bb_y,bb_px,bb_py,bb_pz,bb_p,bb_vx,bb_vy,bb_vz,bb_th_fp,bb_ph_fp,bb_th_tg,bb_ph_tg,bb_y_tg;
-  double bb_pathl;
+  double bb_pathl,sbs_pathl;
   double sh_e,ps_e,sh_x,sh_y,ps_x,ps_y;
   double hcal_e,hcal_eblk,hcal_x,hcal_y, hcal_row, hcal_col, hcal_id;
   tree->Branch("Q2",&Q2);
@@ -224,7 +224,9 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   tree->Branch("bb_ph_tg",&bb_ph_tg);
   tree->Branch("bb_y_tg",&bb_y_tg);
 
+  
   tree->Branch("bb_pathl",&bb_pathl);
+  tree->Branch("sbs_pathl",&sbs_pathl);
   
   double bb_tr_nhits, bb_ntr;
   tree->Branch("bb_tr_nhits",&bb_tr_nhits);
@@ -351,7 +353,14 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   int treenum = 0, currenttreenum = 0, currentrunnum = 0;
   time_t run_time_unix;
   cout << "Processing " << nev << " events." << endl;
+
+  int nev_good=0;
+  int no_bbrf=0;
+  int no_bbtrig=0;
+  int no_sbsrf=0;
+  int no_sbstrig=0;
   
+ 
   while(rd.Next() && ev < nev){
     
     ev = rd.GetCurrentEntry();
@@ -366,6 +375,8 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     //hcal 2 arm cuts
     if ( *sbs_hcal_nclus <= 0) continue;
     if ( sbs_hcal_clus_tdctimeblk[0] == -1000  ||  sbs_hcal_clus_tdctime[0] == 0.00) continue;
+
+    nev_good++;
     
     //target z vertex cut (get rid of end caps)
     //if (Target == "He3")
@@ -408,7 +419,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     bb_th_tg = bb_tr_tg_th[0];
     bb_ph_tg = bb_tr_tg_ph[0];
     bb_y_tg = bb_tr_tg_y[0];
-
+    
     bb_pathl = bb_tr_pathl[0];
 
     //trigtime = *bb_gem_trigtime;
@@ -455,8 +466,10 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     double sbsdist = 2.8;
     double Dgap = 48.0*2.54/100.0; //about 1.22 m
     double BdL = sbsfield * sbsmaxfield * Dgap;
-    double proton_deflection = tan( 0.3 * BdL / Rp4.Rho() ) * (hcal_dist - (sbsdist + Dgap/2.0) );
-
+    double thetabend_prot = 0.3 * BdL / Rp4.Rho(); 
+    double proton_deflection_x = tan(thetabend_prot) * (hcal_dist - (sbsdist + Dgap/2.0) );
+    //double proton_deflection_pathl = (hcal_dist - (sbsdist + Dgap/2.0)) / cos(thetabend_prot);
+    
     //Now we need to calculate the "true" trajectory bend angle for the electron from the reconstructed angles:
     TVector3 enhat_tgt( bb_th_tg, bb_ph_tg, 1.0 );
     enhat_tgt = enhat_tgt.Unit();
@@ -528,8 +541,9 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
       if(bb_tdctrig_tdcelemID[i]==4) bb_rftime=bb_tdctrig_tdc[i];
       if(bb_tdctrig_tdcelemID[i]==5) bb_trigtime=bb_tdctrig_tdc[i];
     }
-    if(bb_rftime == -999 || bb_trigtime == -999) continue;
-
+    if(bb_rftime == -999) no_bbrf++;
+    if(bb_trigtime == -999) no_bbtrig++;
+    
     hcal_refid.clear();
     hcal_ref.clear();
     int nhcalref = *Ndata_sbs_hcal_Ref_tdcelemID;
@@ -541,7 +555,10 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
       if(sbs_hcal_Ref_tdcelemID[i]==2) sbs_trigtime=sbs_hcal_Ref_tdc[i];
       if(sbs_hcal_Ref_tdcelemID[i]==3) sbs_rftime=sbs_hcal_Ref_tdc[i];
     }
-    if(sbs_rftime == -999 || sbs_trigtime == -999) continue;
+    if(sbs_rftime == -999) no_sbsrf++;
+    if(sbs_trigtime == -999) no_sbstrig++;
+
+    if(sbs_rftime == -999 || sbs_trigtime == -999 || bb_rftime == -999 || bb_trigtime == -999) continue;
     
     gr_adc = *bb_grinch_tdc_clus_adc;
     gr_size = *bb_grinch_tdc_clus_size;
@@ -563,13 +580,17 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     //vertex corrections
     TVector3 vertex(bb_vx,bb_vy,bb_vz);
     double sintersect = (hcal_origin-vertex).Dot( hcal_zaxis )/qdir.Dot( hcal_zaxis );
-    TVector3 hcal_intersect = vertex + sintersect * qdir; 
+    TVector3 hcal_intersect = vertex + sintersect * qdir;
+    
     //pred_x = hcal_intersect.Dot( hcal_xaxis );
     //pred_y = hcal_intersect.Dot( hcal_yaxis );
     //correction from sean:
     pred_x = (hcal_intersect-hcal_origin).Dot( hcal_xaxis );
     pred_y = (hcal_intersect-hcal_origin).Dot( hcal_yaxis );
-    
+
+    sbs_pathl = hcal_intersect.Mag();
+    //sbs_pathl_defl =(dSBS-(Dgap/2.0)) + proton_deflection_pathl;
+
     dx = hcal_x - pred_x;
     dy = hcal_y - pred_y;
     
@@ -584,7 +605,12 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     
     tree->Fill();
   }//End of event loop
-  
+  cout << "End of event loop" << endl;
+  cout << "Total Good Events: " << nev_good << endl;
+  cout << "Events with no BB Trig :" << no_bbtrig << endl;
+  cout << "Events with no BB RF :" << no_bbrf << endl;
+  cout << "Events with no SBS Trig :" << no_sbstrig << endl;
+  cout << "Events with no SBS RF :" << no_sbsrf << endl;
   cout <<"Saving rootfiles" << endl;
   outfile->cd();
   outfile->Write();

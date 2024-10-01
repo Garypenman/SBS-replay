@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Wed Sep 18 08:54:01 2024 by ROOT version 6.30/04
+// Tue Sep 24 05:48:08 2024 by ROOT version 6.30/04
 // from TTree T/Output of GEN tof Skim
 // found on file: /home/gpenman/vol/data/out_tof_gen2_H2.root
 //////////////////////////////////////////////////////////
@@ -44,9 +44,9 @@ public :
    Double_t        bb_ph_tg;
    Double_t        bb_y_tg;
    Double_t        bb_pathl;
+   Double_t        sbs_pathl;
    Double_t        bb_tr_nhits;
    Double_t        bb_ntr;
-   Double_t        trigtime;
    Double_t        sh_e;
    Double_t        sh_x;
    Double_t        sh_y;
@@ -108,6 +108,10 @@ public :
    UInt_t          trigbits;
    vector<int>     *tdctrig_id;
    vector<double>  *tdctrig;
+   Double_t        bb_trigtime;
+   Double_t        bb_rftime;
+   Double_t        sbs_trigtime;
+   Double_t        sbs_rftime;
    Long64_t        UID;
 
    // List of branches
@@ -131,9 +135,9 @@ public :
    TBranch        *b_bb_ph_tg;   //!
    TBranch        *b_bb_y_tg;   //!
    TBranch        *b_bb_pathl;   //!
+   TBranch        *b_sbs_pathl;   //!
    TBranch        *b_bb_tr_nhits;   //!
    TBranch        *b_bb_ntr;   //!
-   TBranch        *b_trigtime;   //!
    TBranch        *b_sh_e;   //!
    TBranch        *b_sh_x;   //!
    TBranch        *b_sh_y;   //!
@@ -195,6 +199,10 @@ public :
    TBranch        *b_trigbits;   //!
    TBranch        *b_tdctrig_id;   //!
    TBranch        *b_tdctrig;   //!
+   TBranch        *b_bb_trigtime;   //!
+   TBranch        *b_bb_rftime;   //!
+   TBranch        *b_sbs_trigtime;   //!
+   TBranch        *b_sbs_rftime;   //!
    TBranch        *b_UID;   //!
 
    skim_tree(TTree *tree=0);
@@ -300,9 +308,9 @@ void skim_tree::Init(TTree *tree)
    fChain->SetBranchAddress("bb_ph_tg", &bb_ph_tg, &b_bb_ph_tg);
    fChain->SetBranchAddress("bb_y_tg", &bb_y_tg, &b_bb_y_tg);
    fChain->SetBranchAddress("bb_pathl", &bb_pathl, &b_bb_pathl);
+   fChain->SetBranchAddress("sbs_pathl", &sbs_pathl, &b_sbs_pathl);
    fChain->SetBranchAddress("bb_tr_nhits", &bb_tr_nhits, &b_bb_tr_nhits);
    fChain->SetBranchAddress("bb_ntr", &bb_ntr, &b_bb_ntr);
-   fChain->SetBranchAddress("trigtime", &trigtime, &b_trigtime);
    fChain->SetBranchAddress("sh_e", &sh_e, &b_sh_e);
    fChain->SetBranchAddress("sh_x", &sh_x, &b_sh_x);
    fChain->SetBranchAddress("sh_y", &sh_y, &b_sh_y);
@@ -364,6 +372,10 @@ void skim_tree::Init(TTree *tree)
    fChain->SetBranchAddress("trigbits", &trigbits, &b_trigbits);
    fChain->SetBranchAddress("tdctrig_id", &tdctrig_id, &b_tdctrig_id);
    fChain->SetBranchAddress("tdctrig", &tdctrig, &b_tdctrig);
+   fChain->SetBranchAddress("bb_trigtime", &bb_trigtime, &b_bb_trigtime);
+   fChain->SetBranchAddress("bb_rftime", &bb_rftime, &b_bb_rftime);
+   fChain->SetBranchAddress("sbs_trigtime", &sbs_trigtime, &b_sbs_trigtime);
+   fChain->SetBranchAddress("sbs_rftime", &sbs_rftime, &b_sbs_rftime);
    fChain->SetBranchAddress("UID", &UID, &b_UID);
    Notify();
 }

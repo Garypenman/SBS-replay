@@ -18,8 +18,9 @@
 #include "TDecompSVD.h"
 #include "TVector3.h"
 #include "TLorentzVector.h"
+#include "/home/gpenman/Analysis/SBS-Analysis/GEn/include/gen_ana.h"
 
-const double Mp=0.938272;
+//const double Mp=0.938272;
 
 void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="TOFcal_out.root"){
 
@@ -60,12 +61,12 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   //int nparams_hodo = 3*180; //offset, walk correction, propagation speed for left and right PMTs for 90 bars minus offset fixed at zero for reference PMT
   //actually, vscint should be determined per paddle;
   int nparams_hodo = 180+2*90 + 90; //We actually only really want one zero offset (paddle-specific) that applies to the mean time, so we need 90 zero offsets, 90 vscint values, and 180 walk correction slopes.
-  int nparams_HCAL = 288*2; //offset and walk correction for 288 modules.
+  int nparams_HCAL = 288*3; //offset and walk correction for 288 modules.
 
   //read in previously generated config for iterative calibration
   vector<double> hodoparams, hcalparams;
   vector<double> HODOt0, HODOwL, HODOwR, vscint, tpad_rf; 
-  vector<double> HCALt0, HCALw;
+  vector<double> HCALt0, HCALw, tpad_rf_hcal;
   TString hodoconfigfile = "hodoparams.txt";
   TString hcalconfigfile = "hcalparams.txt";
   
@@ -111,6 +112,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   for (int i=0; i<288; i++ ){
     HCALt0.push_back( hcalparams[i] );
     HCALw.push_back( hcalparams[i+288] );
+    tpad_rf_hcal.push_back( hcalparams[i+576] );
   }
   
   //Ordering of params:
@@ -186,7 +188,20 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
   TH2D *hdt_vz = new TH2D("hdt_vz","",90,-0.5,89.5,nbins,200,250);
   TH2D *hdt_vz_corr = new TH2D("hdt_vz_corr","",90,-0.5,89.5,nbins,200,250);
 
-  TH1D *hdtHCAL_vz_all = new TH1D("hdtHCAL_vz_all","",nbins,-1,-1);
+  //hcal
+  TH1D *hResHCAL_all = new TH1D("hResHCAL_all","",nbins,-4,4);
+  TH1D *hResHCAL_all_corr = new TH1D("hResHCAL_all_corr","",nbins,-4,4);
+  TH1D *hResHCAL[288];
+  TH1D *hResHCAL_corr[288];
+  fout->mkdir("hResHCAL_bars");
+  fout->cd("hResHCAL_bars");
+  for( int i=0; i<288; i++){
+    hResHCAL[i] = new TH1D(Form("hResHCAL_%i",i),"",nbins,-4,4);
+    hResHCAL_corr[i] = new TH1D(Form("hResHCAL_corr_%i",i),"",nbins,-4,4);
+  }
+  fout->cd();
+  
+  TH1D *hdtHCAL_vz_all = new TH1D("hdtHCAL_vz_all","",nbins,75,125);
   TH1D *hdtHCAL_vz_all_corr = new TH1D("hdtHCAL_vz_all_corr","",nbins,-1,-1);
   TH2D *hdtHCAL_vz = new TH2D("hdtHCAL_vz","",90,-0.5,89.5,nbins,-1,-1);
   TH2D *hdtHCAL_vz_corr = new TH2D("hdtHCAL_vz_corr","",90,-0.5,89.5,nbins,-1,-1);
@@ -240,10 +255,20 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     double vz = T->bb_vz;
     double pathl = T->bb_pathl;
     double etof = pathl/0.299792458; //electron TOF from vertex to hodo.
+
+    //for now predicted N pathl and tof from H2 elastics
+    double npathl = T->sbs_pathl;
+    double pred_beta = GetBeta(Mp,T->pred_mom);
+    double ntof = npathl / (pred_beta * 0.2997);
     
-    //bbcal trigger time
-    //double trigtime = T->trigtime; 
+    //new trigger branches
+    double bb_trigtime = T->bb_trigtime;
+    double bb_rftime = T->bb_rftime;
+    double sbs_trigtime = T->sbs_trigtime;
+    double sbs_rftime = T->sbs_rftime;
     
+    
+    /*
     //rf time
     double trigtime=-999;
     double rftime=-999.;
@@ -263,7 +288,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     if (hcal_trigtime==-999 || hcal_rftime == -999) continue;
 
     //hcal_rftime = hcal_rftime + hcal_trigtime;
-
+    */
     
     //relevant hodo cluster parameters
     double tleft = T->hodo_tleft->at(0);
@@ -332,10 +357,11 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     double Lpath_HCAL = (HCAL_intersect - vertex).Mag();
 
     double beta_proton = pp_etheta/sqrt(pow(pp_etheta,2)+pow(Mp,2));
-      
+    //cout << beta_proton << " " << pred_beta << endl;
+    
     double TOF_HCAL = Lpath_HCAL/(beta_proton*0.299792458);
     double HCALtcent = dHCAL/(beta_proton*0.299792458);
-      
+
     double W2 = T->W2;
 
     // thetabend = 0.3/p * BdL ;
@@ -346,6 +372,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
       
     double deltax = xHCAL-(xHCAL_expect-protondeflection);
     double deltay = yHCAL-(yHCAL_expect);
+
     //zero data in sbs which is wrongly pushed back as a "zero" in the datastream
     if (idblkHCAL == -1) continue;
       
@@ -423,11 +450,7 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
 
     //calculate a corrected time difference without the propagation correction:
     double tdiff_CORR = tleft_CORR - tright_CORR;
-    double tmean_CORR = 0.5 * (tleft_CORR + tright_CORR);// + tpad_rf[ID];
-    //how to get the rf paddle offsets from the global fit?
-    //can start atleast with 90 histos?
-    //use fmod(dt_vz,T_rf)
-    //tpad_rf[i] = hR[i]->GetMean()?
+    double tmean_CORR = 0.5 * (tleft_CORR + tright_CORR);
     
     double tmean_old = T->hodo_tmean->at(0);
     double tdiff_old = T->hodo_tdiff->at(0);
@@ -440,21 +463,26 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     
 
     //hall B vertex time calcs
-    double rf_offset = -1.0;//1.0;
     double T_rf = 2.008;
-    double t_vz = tmean_CORR + trigtime;
-    double t_start = rftime + vz/0.299792458;
+    
+    //hodo
+    double rf_offset = -1.0;//1.0;
+    double t_vz = tmean_CORR + bb_trigtime;
+    double t_start = bb_rftime + vz/0.299792458;
     double dt_vz = t_vz - t_start;
     double dt_vz_corr = dt_vz - tpad_rf[ID];
     double tR = fmod(dt_vz,T_rf) + rf_offset;
     double tR_corr = fmod(dt_vz_corr,T_rf) + rf_offset;
 
-    double tHCAL_vz = tHCAL + hcal_trigtime;
-    double tHCAL_start = hcal_rftime + vz/0.299792458; 
-    
+    //hcal equiv
+    double rf_sbsoffset = 0.0;
+    double tHCAL_vz = tHCAL + sbs_trigtime - ntof;
+    double tHCAL_start = sbs_rftime + vz/0.299792458; 
     double dtHCAL_vz = tHCAL_vz - tHCAL_start;
-    double dRHCAL = fmod(dtHCAL_vz, T_rf);
-
+    double dtHCAL_vz_corr = dtHCAL_vz - tpad_rf_hcal[idblkHCAL];
+    double tRHCAL = fmod(dtHCAL_vz, T_rf) + rf_sbsoffset;
+    double tRHCAL_corr = fmod(dtHCAL_vz_corr, T_rf) + rf_sbsoffset;
+    
 
     //Fill histograms
     htmean_hodoID_old->Fill( ID, tmean_old );
@@ -465,9 +493,9 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     htdiff_yhodo_raw->Fill( yhodo, tdiff_raw );
     htdiff_yhodo_new->Fill( yhodo, tdiff_CORR );
     
-    htmean_trigRF_old->Fill( ID, tmean_old + trigtime - fmod(rftime,T_rf) );
-    htmean_trigRF_raw->Fill( ID, tmean_raw + trigtime - fmod(rftime,T_rf) );
-    htmean_trigRF_new->Fill( ID, tmean_CORR+ trigtime - fmod(rftime,T_rf) );
+    htmean_trigRF_old->Fill( ID, tmean_old + bb_trigtime - fmod(bb_rftime,T_rf) );
+    htmean_trigRF_raw->Fill( ID, tmean_raw + bb_trigtime - fmod(bb_rftime,T_rf) );
+    htmean_trigRF_new->Fill( ID, tmean_CORR+ bb_trigtime - fmod(bb_rftime,T_rf) );
 
     
     //hodoscope resids (fmod times)
@@ -482,17 +510,24 @@ void TOFcal(const char *inputfilename="testconfig", const char *outputfilename="
     hdt_vz->Fill(ID, dt_vz);
     hdt_vz_corr->Fill(ID,dt_vz_corr);
 
-    //hcal resids (fmods)? later
-
-    //t_vz_hcal - t_hcal_start
-    if(idblkHCAL==199){
+    if (idblkHCAL==199){
+      //hcal resids (fmods)? later
+      hResHCAL_all->Fill(tRHCAL);
+      hResHCAL_all_corr->Fill(tRHCAL_corr);
+      hResHCAL[idblkHCAL]->Fill(tRHCAL);
+      hResHCAL_corr[idblkHCAL]->Fill(tRHCAL_corr);
+      
+      //t_vz_hcal - t_hcal_start
       hdtHCAL_vz_all->Fill(dtHCAL_vz);
+      hdtHCAL_vz_all_corr->Fill(dtHCAL_vz_corr);
+      hdtHCAL_vz->Fill(idblkHCAL,dtHCAL_vz);
+      hdtHCAL_vz_corr->Fill(idblkHCAL, dtHCAL_vz_corr);
     }
     
-    htrig_BBvSBS->Fill(trigtime, hcal_trigtime);
-    hRF_BBvSBS->Fill(rftime, hcal_rftime);
-    hBB_TRIGvRF->Fill(rftime, trigtime);
-    hSBS_TRIGvRF->Fill(hcal_rftime, hcal_trigtime);
+    htrig_BBvSBS->Fill(bb_trigtime, sbs_trigtime);
+    hRF_BBvSBS->Fill(bb_rftime, sbs_rftime);
+    hBB_TRIGvRF->Fill(bb_rftime, bb_trigtime);
+    hSBS_TRIGvRF->Fill(sbs_rftime, sbs_trigtime);
     
     htmean_hcalID_old->Fill( idblkHCAL, tHCAL );
     htmean_hcalID_new->Fill( idblkHCAL, tHCAL_CORR );
