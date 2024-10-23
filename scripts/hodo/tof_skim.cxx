@@ -39,7 +39,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   }
 
   //my replays
-  rootfile_dir = Form("/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/Pass1_tofcalib_bbcal50ns/");
+  rootfile_dir = Form("/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/Oct2024/");
   
   gSystem->Setenv("ROOTFILE_DIR",rootfile_dir); 
   
