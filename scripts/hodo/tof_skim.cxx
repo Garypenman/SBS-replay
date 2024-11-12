@@ -19,7 +19,9 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   //cache location of pass1
   rootfile_dir = Form("/cache/halla/sbs/prod/GEnII/pass1/GEN%i/%s/rootfiles",kin_no,Target.Data());
   if(kin_no == 2  && Target == "H2")
-    rootfile_dir = "/cache/halla/sbs/prod/GEnII/pass1/GEN2/H2/SBS100/rootfiles/";
+    //rootfile_dir = "/cache/halla/sbs/prod/GEnII/pass1/GEN2/H2/SBS100/rootfiles/";
+    rootfile_dir = "/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/pass1/GEN2/H2/SBS100/";
+  
   if(kin_no==4) {
     char input;
     while (true) {
@@ -38,9 +40,6 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     }
   }
 
-  //my replays
-  rootfile_dir = Form("/volatile/halla/sbs/gpenman/GEN_REPLAY/rootfiles/Oct2024/");
-  
   gSystem->Setenv("ROOTFILE_DIR",rootfile_dir); 
   
   C->Add("$ROOTFILE_DIR/e1209016_fullreplay_*.root");
@@ -143,6 +142,17 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   TTreeReaderArray<Double_t> sbs_hcal_clus_col = {rd, "sbs.hcal.clus.col"};
   TTreeReaderArray<Double_t> sbs_hcal_clus_id = {rd, "sbs.hcal.clus.id"};
 
+  //blks in cluster
+  TTreeReaderValue<Int_t> Ndata_sbs_hcal_clus_blk_id = {rd, "Ndata.sbs.hcal.clus_blk.id"};
+  TTreeReaderArray<Double_t> sbs_hcal_clus_blk_x = {rd,"sbs.hcal.clus_blk.x"};
+  TTreeReaderArray<Double_t> sbs_hcal_clus_blk_y = {rd,"sbs.hcal.clus_blk.y"};
+  TTreeReaderArray<Double_t> sbs_hcal_clus_blk_e = {rd,"sbs.hcal.clus_blk.e"};
+  TTreeReaderArray<Double_t> sbs_hcal_clus_blk_row = {rd, "sbs.hcal.clus_blk.row"};
+  TTreeReaderArray<Double_t> sbs_hcal_clus_blk_col = {rd, "sbs.hcal.clus_blk.col"};
+  TTreeReaderArray<Double_t> sbs_hcal_clus_blk_id = {rd, "sbs.hcal.clus_blk.id"};
+  TTreeReaderArray<Double_t> sbs_hcal_clus_blk_atime = {rd, "sbs.hcal.clus_blk.atime"};
+  TTreeReaderArray<Double_t> sbs_hcal_clus_blk_tdctime = {rd, "sbs.hcal.clus_blk.tdctime"};
+  
   //hcal trigger stuff
   TTreeReaderValue<Int_t> Ndata_sbs_hcal_Ref_tdcelemID = {rd, "Ndata.sbs.hcal.Ref.tdcelemID"};
   TTreeReaderArray<Double_t> sbs_hcal_Ref_tdcelemID = {rd, "sbs.hcal.Ref.tdcelemID"};
@@ -162,11 +172,11 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_id = {rd, "bb.hodotdc.clus.bar.tdc.id"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_itrack = {rd, "bb.hodotdc.clus.bar.tdc.itrack"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_meantime = {rd, "bb.hodotdc.clus.bar.tdc.meantime"};
+  TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_meantot = {rd, "bb.hodotdc.clus.bar.tdc.meantot"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_tleft = {rd, "bb.hodotdc.clus.bar.tdc.tleft"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_tright = {rd, "bb.hodotdc.clus.bar.tdc.tright"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_totleft = {rd, "bb.hodotdc.clus.bar.tdc.totleft"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_totright = {rd, "bb.hodotdc.clus.bar.tdc.totright"};
-  TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_meantot = {rd, "bb.hodotdc.clus.bar.tdc.meantot"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_timediff = {rd, "bb.hodotdc.clus.bar.tdc.timediff"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_vpos = {rd, "bb.hodotdc.clus.bar.tdc.vpos"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_timehitpos = {rd, "bb.hodotdc.clus.bar.tdc.timehitpos"};
@@ -227,6 +237,9 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   
   tree->Branch("bb_pathl",&bb_pathl);
   tree->Branch("sbs_pathl",&sbs_pathl);
+
+  double proton_defl_x;
+  tree->Branch("proton_defl_x",&proton_defl_x);
   
   double bb_tr_nhits, bb_ntr;
   tree->Branch("bb_tr_nhits",&bb_tr_nhits);
@@ -247,6 +260,23 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   tree->Branch("hcal_row",&hcal_row);
   tree->Branch("hcal_col",&hcal_col);
   tree->Branch("hcal_id",&hcal_id);
+
+  vector<double> hcal_blk_e;
+  vector<double> hcal_blk_x;
+  vector<double> hcal_blk_y;
+  vector<double> hcal_blk_row;
+  vector<double> hcal_blk_col;
+  vector<double> hcal_blk_id;
+  vector<double> hcal_blk_adctime;
+  vector<double> hcal_blk_tdctime;
+  tree->Branch("hcal_blk_e",&hcal_blk_e);
+  tree->Branch("hcal_blk_x",&hcal_blk_x);
+  tree->Branch("hcal_blk_y",&hcal_blk_y);
+  tree->Branch("hcal_blk_row",&hcal_blk_row);
+  tree->Branch("hcal_blk_col",&hcal_blk_col);
+  tree->Branch("hcal_blk_id",&hcal_blk_id);
+  tree->Branch("hcal_blk_tdctime",&hcal_blk_tdctime);
+  tree->Branch("hcal_blk_adctime",&hcal_blk_adctime);
   
   double pred_ang_horiz, pred_ang_vert, pred_y, pred_x, pred_mom, dx, dy, dev;
   tree->Branch("pred_ang_horiz",&pred_ang_horiz);
@@ -280,6 +310,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   
   vector<double> hodo_tmean;
   vector<double> hodo_tdiff;
+  vector<double> hodo_totmean;
   vector<double> hodo_tleft;
   vector<double> hodo_tright;
   vector<double> hodo_totleft;
@@ -288,6 +319,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   vector<double> hodo_bar;
   double hodo_nclus, hodo_nbar;
   tree->Branch("hodo_tmean",&hodo_tmean);
+  tree->Branch("hodo_totmean",&hodo_totmean);
   tree->Branch("hodo_tdiff",&hodo_tdiff);
   tree->Branch("hodo_tleft",&hodo_tleft);
   tree->Branch("hodo_tright",&hodo_tright);
@@ -360,21 +392,29 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   int no_sbsrf=0;
   int no_sbstrig=0;
   
- 
+  TString lastfile = "";
   while(rd.Next() && ev < nev){
+    
+    //std::cout << "C->GetName()    " << C->GetName() << std::endl;
+    //std::cout << "C->GetCurrentFile()    " << C->GetCurrentFile() << std::endl;
+    //std::cout << "C->GetCurrentFile()->GetName()    " << C->GetCurrentFile()->GetName() << std::endl;
+    TString thisfile = C->GetCurrentFile()->GetName();
+    if(thisfile != lastfile){
+      cout << thisfile << endl;
+      lastfile = thisfile;
+    }
     
     ev = rd.GetCurrentEntry();
     UID += 1;
     
     if( ev % 100000 == 0 )
-      cout << ev << " / " << nev << endl;
-    
+      cout << ev << " / " << nev << ": " << *fEvtHdr_fRun << endl;
     // Pre-cuts -- these should be in the replay cdef
-    if( *bb_tr_n <= 0 ) continue; 
+    //if( *bb_tr_n <= 0 ) continue; 
     
     //hcal 2 arm cuts
-    if ( *sbs_hcal_nclus <= 0) continue;
-    if ( sbs_hcal_clus_tdctimeblk[0] == -1000  ||  sbs_hcal_clus_tdctime[0] == 0.00) continue;
+    //if ( *sbs_hcal_nclus <= 0) continue;
+    //if ( sbs_hcal_clus_tdctimeblk[0] == -1000  ||  sbs_hcal_clus_tdctime[0] == 0.00) continue;
 
     nev_good++;
     
@@ -467,7 +507,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     double Dgap = 48.0*2.54/100.0; //about 1.22 m
     double BdL = sbsfield * sbsmaxfield * Dgap;
     double thetabend_prot = 0.3 * BdL / Rp4.Rho(); 
-    double proton_deflection_x = tan(thetabend_prot) * (hcal_dist - (sbsdist + Dgap/2.0) );
+    proton_defl_x = tan(thetabend_prot) * (hcal_dist - (sbsdist + Dgap/2.0) );
     //double proton_deflection_pathl = (hcal_dist - (sbsdist + Dgap/2.0)) / cos(thetabend_prot);
     
     //Now we need to calculate the "true" trajectory bend angle for the electron from the reconstructed angles:
@@ -493,17 +533,41 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     hcal_row = sbs_hcal_clus_row[0];
     hcal_col = sbs_hcal_clus_col[0];
     hcal_id = sbs_hcal_clus_id[0];
-
+    //energy weighted adc,tdc times of cluster
+    hcal_adctime = sbs_hcal_clus_adctime[0];
+    hcal_tdctime = sbs_hcal_clus_tdctime[0];
+    //adc,tdc time of highest energy block in main cluster
+    hcal_atimeblk = sbs_hcal_clus_atimeblk[0];
+    hcal_tdctimeblk = sbs_hcal_clus_tdctimeblk[0];
+    
+    
+    //hcal blks in main cluster
+    int nhcal = *Ndata_sbs_hcal_clus_blk_id;
+    hcal_blk_e.clear();
+    hcal_blk_x.clear();
+    hcal_blk_y.clear();
+    hcal_blk_row.clear();
+    hcal_blk_col.clear();
+    hcal_blk_id.clear();
+    hcal_blk_adctime.clear();
+    hcal_blk_tdctime.clear();
+    for(int i=0; i<nhcal; i++){
+      hcal_blk_e.push_back(sbs_hcal_clus_blk_e[i]);
+      hcal_blk_x.push_back(sbs_hcal_clus_blk_x[i]);
+      hcal_blk_y.push_back(sbs_hcal_clus_blk_y[i]);
+      hcal_blk_row.push_back(sbs_hcal_clus_blk_row[i]);
+      hcal_blk_col.push_back(sbs_hcal_clus_blk_col[i]);
+      hcal_blk_id.push_back(sbs_hcal_clus_blk_id[i]);
+      hcal_blk_adctime.push_back(sbs_hcal_clus_blk_atime[i]);
+      hcal_blk_tdctime.push_back(sbs_hcal_clus_blk_tdctime[i]);
+    }
+    
     //timing variables
     ps_atime = *bb_ps_atimeblk;
     sh_atime = *bb_sh_atimeblk;
-    hcal_adctime = sbs_hcal_clus_adctime[0];
-    hcal_atimeblk = sbs_hcal_clus_atimeblk[0];
     coin_atime = hcal_adctime - sh_atime;
     //int hcal_rownum = (int) sbs_hcal_clus_rowblk;
     //coin_atime_corr = coin_atime - hcal_atcoin_means[hcal_rownum];
-    hcal_tdctimeblk = sbs_hcal_clus_tdctimeblk[0];
-    hcal_tdctime = sbs_hcal_clus_tdctime[0];
     coin_time = hcal_tdctime - bb_hodotdc_clus_bar_tdc_meantime[0];
     //int hodo_barid = (int) bb_hodotdc_clus_bar_tdc_id[0];
     //coin_time_corr = coin_time - hodo_tcoin_means[hodo_barid]; 
@@ -512,6 +576,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     hodo_nbar = nhodo;
     hodo_tmean.clear();
     hodo_tdiff.clear();
+    hodo_totmean.clear();
     hodo_tleft.clear();
     hodo_tright.clear();
     hodo_totleft.clear();
@@ -522,6 +587,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     for (int i=0; i<nhodo; i++){
       hodo_tmean.push_back(bb_hodotdc_clus_bar_tdc_meantime[i]);
       hodo_tdiff.push_back(bb_hodotdc_clus_bar_tdc_timediff[i]);
+      hodo_totmean.push_back(bb_hodotdc_clus_bar_tdc_meantot[i]);
       hodo_tleft.push_back(bb_hodotdc_clus_bar_tdc_tleft[i]);
       hodo_tright.push_back(bb_hodotdc_clus_bar_tdc_tright[i]);
       hodo_totleft.push_back(bb_hodotdc_clus_bar_tdc_totleft[i]);
@@ -558,7 +624,7 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     if(sbs_rftime == -999) no_sbsrf++;
     if(sbs_trigtime == -999) no_sbstrig++;
 
-    if(sbs_rftime == -999 || sbs_trigtime == -999 || bb_rftime == -999 || bb_trigtime == -999) continue;
+    //if(sbs_rftime == -999 || sbs_trigtime == -999 || bb_rftime == -999 || bb_trigtime == -999) continue;
     
     gr_adc = *bb_grinch_tdc_clus_adc;
     gr_size = *bb_grinch_tdc_clus_size;

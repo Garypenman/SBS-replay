@@ -1,6 +1,6 @@
 //////////////////////////////////////////////////////////
 // This class has been automatically generated on
-// Tue Sep 24 05:48:08 2024 by ROOT version 6.30/04
+// Mon Nov 11 17:45:57 2024 by ROOT version 6.30/04
 // from TTree T/Output of GEN tof Skim
 // found on file: /home/gpenman/vol/data/out_tof_gen2_H2.root
 //////////////////////////////////////////////////////////
@@ -60,6 +60,14 @@ public :
    Double_t        hcal_row;
    Double_t        hcal_col;
    Double_t        hcal_id;
+   vector<double>  *hcal_blk_e;
+   vector<double>  *hcal_blk_x;
+   vector<double>  *hcal_blk_y;
+   vector<double>  *hcal_blk_row;
+   vector<double>  *hcal_blk_col;
+   vector<double>  *hcal_blk_id;
+   vector<double>  *hcal_blk_tdctime;
+   vector<double>  *hcal_blk_adctime;
    Double_t        pred_ang_horiz;
    Double_t        pred_ang_vert;
    Double_t        pred_y;
@@ -151,6 +159,14 @@ public :
    TBranch        *b_hcal_row;   //!
    TBranch        *b_hcal_col;   //!
    TBranch        *b_hcal_id;   //!
+   TBranch        *b_hcal_blk_e;   //!
+   TBranch        *b_hcal_blk_x;   //!
+   TBranch        *b_hcal_blk_y;   //!
+   TBranch        *b_hcal_blk_row;   //!
+   TBranch        *b_hcal_blk_col;   //!
+   TBranch        *b_hcal_blk_id;   //!
+   TBranch        *b_hcal_blk_tdctime;   //!
+   TBranch        *b_hcal_blk_adctime;   //!
    TBranch        *b_pred_ang_horiz;   //!
    TBranch        *b_pred_ang_vert;   //!
    TBranch        *b_pred_y;   //!
@@ -270,6 +286,14 @@ void skim_tree::Init(TTree *tree)
    // (once per file to be processed).
 
    // Set object pointer
+   hcal_blk_e = 0;
+   hcal_blk_x = 0;
+   hcal_blk_y = 0;
+   hcal_blk_row = 0;
+   hcal_blk_col = 0;
+   hcal_blk_id = 0;
+   hcal_blk_tdctime = 0;
+   hcal_blk_adctime = 0;
    hcal_refid = 0;
    hcal_ref = 0;
    hodo_tmean = 0;
@@ -324,6 +348,14 @@ void skim_tree::Init(TTree *tree)
    fChain->SetBranchAddress("hcal_row", &hcal_row, &b_hcal_row);
    fChain->SetBranchAddress("hcal_col", &hcal_col, &b_hcal_col);
    fChain->SetBranchAddress("hcal_id", &hcal_id, &b_hcal_id);
+   fChain->SetBranchAddress("hcal_blk_e", &hcal_blk_e, &b_hcal_blk_e);
+   fChain->SetBranchAddress("hcal_blk_x", &hcal_blk_x, &b_hcal_blk_x);
+   fChain->SetBranchAddress("hcal_blk_y", &hcal_blk_y, &b_hcal_blk_y);
+   fChain->SetBranchAddress("hcal_blk_row", &hcal_blk_row, &b_hcal_blk_row);
+   fChain->SetBranchAddress("hcal_blk_col", &hcal_blk_col, &b_hcal_blk_col);
+   fChain->SetBranchAddress("hcal_blk_id", &hcal_blk_id, &b_hcal_blk_id);
+   fChain->SetBranchAddress("hcal_blk_tdctime", &hcal_blk_tdctime, &b_hcal_blk_tdctime);
+   fChain->SetBranchAddress("hcal_blk_adctime", &hcal_blk_adctime, &b_hcal_blk_adctime);
    fChain->SetBranchAddress("pred_ang_horiz", &pred_ang_horiz, &b_pred_ang_horiz);
    fChain->SetBranchAddress("pred_ang_vert", &pred_ang_vert, &b_pred_ang_vert);
    fChain->SetBranchAddress("pred_y", &pred_y, &b_pred_y);
