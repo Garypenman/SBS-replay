@@ -44,10 +44,10 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   
   C->Add("$ROOTFILE_DIR/e1209016_fullreplay_*.root");
   
-  SetKinematics(kin_no);
+  SetKinematics(kin_no,Target);
   
-  double hcal_voffset = 0.0;
-  double hcal_hoffset = 0.0;
+  double hcal_voffset = 0.1;
+  double hcal_hoffset = 0.25;
   
   //setting the correct coordinates for hcal axis in the lab frame
   //sean method
