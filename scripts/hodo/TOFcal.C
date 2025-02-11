@@ -1,5 +1,3 @@
-//#include "gmn_tree.C"
-#include "skim_tree.C"
 #include "TChain.h"
 #include "TTree.h"
 #include "TH1D.h"
@@ -22,14 +20,26 @@
 
 //const double Mp=0.938272;
 
-void TOFcal(const char *outputfilename="TOFcal_out.root"){
+void TOFcal(Int_t kin_no=2, TString Target = "H2"){
+  
   gStyle->SetPalette(kRainBow);
   gROOT->SetBatch(kTRUE);
+  SetKinematics(kin_no,Target);
   
   TString currentline;
   
   TChain *C = new TChain("T");
-  C->Add("/volatile/halla/sbs/gpenman/data/out_tof_gen2_H2.root");
+  if(Target == "H2")
+    C->Add(Form("/volatile/halla/sbs/gpenman/data/out_gen%i_H2.root",kin_no));
+  else
+    C->Add(Form("/volatile/halla/sbs/gpenman/data/out_gen%i_He3_qeneutron.root",kin_no));
+  if(C)
+    cout << "Chain setup" << endl;
+  SkimTree *T = new SkimTree(C);
+  long nev = C->GetEntries();
+  if(T)
+    cout << "SkimTree setup" << endl;
+
   
   //Default reference PMTs for aligning all other PMTs:
   int hodorefID = 44; // reference BAR (not PMT); we'll set the LEFT PMT to the reference by convention:
@@ -37,7 +47,7 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
   
   double zhodo = 1.854454; //meters
   double Lbar_hodo = 0.6; //meters
-  double etof0 = (1.96+3.0)/0.299792458; // "central" TOF value:
+  double etof0 = (1.63+3.0)/0.299792458; // "central" TOF value:
   
   double thetaHCAL = 34.7;
   double dHCAL = 17.0;
@@ -59,92 +69,74 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
   TVector3 yaxis_HCAL = (zaxis_HCAL.Cross(xaxis_HCAL)).Unit();
   
   TVector3 HCALorigin = dHCAL*zaxis_HCAL;
+
+  cout << "basic experimental variables initialised" << endl;
   
-  //180 walk correction slopes, 90 propagation speed slopes, 90 paddle rf offsets and 90 zero offsets.
-  int nparams_hodo = 180 + 180 + 90;
-  //288 zero offsets, 288 rf offsets, 2*288 TW params for hall B like fit
-  int nparams_HCAL = 288*4;
-  
+  //parameters per hcal-hodo channel combo
+  //90 * (1 offset, 2 Hodo walk correction slopes, 1 hodo propagation speed, 1 paddle rf offset)
+  //288 * (1 offset, 2 Hcal walk params for hall B like fit, 1 rf offsets)
+  int nparams_hodo = 90 * (1 + 2 + 1 + 1);
+  int nparams_hcal = 288 * (1 + 2 + 1);
+  int nparams = nparams_hodo + nparams_hcal;
+
   //read in previously generated config for iterative calibration
-  vector<double> hodoparams, hcalparams, hcalparams_test;
-  vector<double> HODOt0, HODOwL, HODOwR, vscint, tpad_rf; 
-  vector<double> HCALt0, HCALw0, HCALw1, HCALw2, tpad_rf_hcal;
-  //vector<double> HCALt0_test, HCALw0_test, HCALw1_test, HCALw2_test;
-  TString hodoconfigfile = "hodoparams.txt";
-  TString hcalconfigfile = "hcalparams.txt";
-  //TString hcalconfigfile = "hcalparams_good.txt";
+  vector<double> params;
+  vector<double> t0, HODOwL, HODOwR, vscint, tpad_rf; 
+  vector<double> t1, HCALw0, HCALw1, tpad_rf_hcal;
+  TString configfile = Form("params_GEN%i_%s.txt",kin_no,Target.Data());
   
   //get hodo params if they exist otherwise fill vector of zeros
-  ifstream hodoconfigin(hodoconfigfile);
-  if(!hodoconfigin){
-    cout << "Hodo config file not found, assuming first run of calibration." << endl;
-    for (int i=0; i<nparams_hodo; i++)
-      hodoparams.push_back(0.0);
+  ifstream configin(configfile);
+  if(!configin){
+    cout << "Global config file not found, assuming first run of calibration." << endl;
+    for (int i=0; i<nparams; i++)
+      params.push_back(0.0);
   }
   else{
-    while(currentline.ReadLine(hodoconfigin)){
-      hodoparams.push_back(stod(currentline.Data()));
+    while(currentline.ReadLine(configin)){
+      params.push_back(stod(currentline.Data()));
     }
   }
-  hodoconfigin.close();
-  
-  //get hcal params if they exist otherwise fill vector of zeros
-  //HCAL and hodo TDCs both use BigBite trigger as reference time, so both have reference time subtracted:
-  //input the known good tw params from offline fit
-  ifstream hcalconfigin(hcalconfigfile);
-  if(!hcalconfigin){
-    cout << "Hcal config file not found, assuming first run of calibration." << endl;
-    for (int i=0; i<nparams_HCAL; i++){
-      hcalparams.push_back(0.0);
-    }
-  }else{
-    while(currentline.ReadLine(hcalconfigin)){
-      hcalparams.push_back(stod(currentline.Data()));
-    }
-  }
-  hcalconfigin.close();
+  configin.close();
 
-  //now fill the vectors associated with each set of parameters
-  for( int i=0; i<90; i++ ){
-    HODOt0.push_back( hodoparams[i] );
-    vscint.push_back( 1.0/hodoparams[i+90] );
-    HODOwL.push_back( hodoparams[i+180] );
-    HODOwR.push_back( hodoparams[i+270] );
-    tpad_rf.push_back( hodoparams[i+360] );
-    }
+  cout << "parameter vector initialised" << endl;
   
-  for (int i=0; i<288; i++ ){
-    HCALt0.push_back( hcalparams[i] );
-    HCALw0.push_back( hcalparams[i+288] );
-    HCALw1.push_back( hcalparams[i+2*288] );
-    tpad_rf_hcal.push_back( hcalparams[i+4*288] );
+  //now fill the vectors associated with each set of parameters
+  for( int i=0; i<90; i++){
+    t0.push_back (params[i] );
+    vscint.push_back( 1.0/params[i+90] );
+    HODOwL.push_back( params[i+180] );
+    HODOwR.push_back( params[i+270] );
+    tpad_rf.push_back( params[i+360] );
   }
+  for ( int i=0; i<288; i++){
+    int j=nparams_hodo+i;
+    t1.push_back( params[j] );
+    HCALw0.push_back( params[j+288] );
+    HCALw1.push_back( params[j+2*288] );
+    tpad_rf_hcal.push_back( params[j+3*288] );
+  }
+  cout << "parameter vector filled" << endl;
   
   //Ordering of params:
+  //t0
   // t0i, walkileft, walkiright, 1/vi
   // later, rfi
-  TMatrixD Mhodo(nparams_hodo,nparams_hodo);
-  TMatrixD Mhcal(nparams_HCAL,nparams_HCAL);
-  TVectorD bhodo(nparams_hodo);
-  TVectorD bhcal(nparams_HCAL);
+  TMatrixD Mh(nparams,nparams);
+  TVectorD bh(nparams); 
 
-  for( int ipar=0; ipar<nparams_hodo; ipar++ ){
-    for( int jpar=0; jpar<nparams_hodo; jpar++ ){
-      Mhodo(ipar,jpar) = 0.0;
+  for( int ipar=0; ipar<nparams; ipar++ ){
+    for( int jpar=0; jpar<nparams; jpar++ ){
+      Mh(ipar,jpar) = 0.0;
     }
-    bhodo(ipar) = 0.0;
+    bh(ipar) = 0.0;
   }
-  
-  for( int ipar=0; ipar<nparams_HCAL; ipar++ ){
-    for( int jpar=0; jpar<nparams_HCAL; jpar++ ){
-      Mhcal(ipar,jpar) = 0.0;
-    }
-    bhcal(ipar) = 0.0;
-  }
+  cout << "Matrix setup" << endl;
   
   
   //declare outfile here incase we want to choose to abort execution later on due to missing input files
   //but not overwrite previously generated outputfiles etc
+  TString outputfilename=Form("TOFcal_GEN%i_%s.root",kin_no,Target.Data());
   TFile *fout = new TFile(outputfilename,"RECREATE");
   fout->cd();
   
@@ -166,15 +158,28 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
   TH2D *htmean_hcale_new = new TH2D("htmean_hcale_new","NEW ;hcal edep [GeV]; clus t_{mean} [ns]", nbins,0,0.5,nbins,-30,30);
   
   //Really want a large quantity of zero-field LH2 data for this purpose:
-  TH2D *htcoin_vs_HCALID_oldold = new TH2D("htcoin_vs_HCALID_oldold", "OLD hodo, OLD HCAL; HCAL ID; t_{HCAL}-t_{HODO,corr} [ns]",288,-0.5,287.5,250,-50,50); 
-  TH2D *htcoin_vs_HCALID_oldnew = new TH2D("htcoin_vs_HCALID_oldnew", "NEW hodo, OLD HCAL; HCAL ID; t_{HCAL}-t_{HODO,corr} [ns]",288,-0.5,287.5,250,-50,50); 
-  TH2D *htcoin_vs_HCALID_newold = new TH2D("htcoin_vs_HCALID_newold", "OLD hodo, NEW HCAL; HCAL ID; t_{HCAL}-t_{HODO,corr} [ns]",288,-0.5,287.5,250,-50,50); 
-  TH2D *htcoin_vs_HCALID_newnew = new TH2D("htcoin_vs_HCALID_newnew", "NEW hodo, NEW HCAL; HCAL ID; t_{HCAL}-t_{HODO,corr} [ns]",288,-0.5,287.5,250,-50,50); 
+  TH2D *htcoin_vs_HCALID_oldold = new TH2D("htcoin_vs_HCALID_oldold", "OLD hodo, OLD HCAL; HCAL ID; t_{HCAL}-t_{HODO,corr} [ns]",288,-0.5,287.5,250,-10,10); 
+  TH2D *htcoin_vs_HCALID_oldnew = new TH2D("htcoin_vs_HCALID_oldnew", "NEW hodo, OLD HCAL; HCAL ID; t_{HCAL}-t_{HODO,corr} [ns]",288,-0.5,287.5,250,-10,10); 
+  TH2D *htcoin_vs_HCALID_newold = new TH2D("htcoin_vs_HCALID_newold", "OLD hodo, NEW HCAL; HCAL ID; t_{HCAL}-t_{HODO,corr} [ns]",288,-0.5,287.5,250,-10,10); 
+  TH2D *htcoin_vs_HCALID_newnew = new TH2D("htcoin_vs_HCALID_newnew", "NEW hodo, NEW HCAL; HCAL ID; t_{HCAL}-t_{HODO,corr} [ns]",288,-0.5,287.5,250,-10,10); 
 
-  TH2D *htcoin_vs_HODOID_oldold = new TH2D("htcoin_vs_HODOID_oldold", "OLD hodo, OLD HCAL; Hodo Bar; t_{HCAL}-t_{HODO,corr} [ns]",90,-0.5,89.5,250,-50,50); 
-  TH2D *htcoin_vs_HODOID_oldnew = new TH2D("htcoin_vs_HODOID_oldnew", "NEW hodo, OLD HCAL; Hodo Bar; t_{HCAL}-t_{HODO,corr} [ns]",90,-0.5,89.5,250,-50,50); 
-  TH2D *htcoin_vs_HODOID_newold = new TH2D("htcoin_vs_HODOID_newold", "OLD hodo, NEW HCAL; Hodo Bar; t_{HCAL}-t_{HODO,corr} [ns]",90,-0.5,89.5,250,-50,50); 
-  TH2D *htcoin_vs_HODOID_newnew = new TH2D("htcoin_vs_HODOID_newnew", "NEW hodo, NEW HCAL; Hodo Bar; t_{HCAL}-t_{HODO,corr} [ns]",90,-0.5,89.5,250,-50,50); 
+  TH2D *htcoin_vs_HODOID_oldold = new TH2D("htcoin_vs_HODOID_oldold", "OLD hodo, OLD HCAL; Hodo Bar; t_{HCAL}-t_{HODO,corr} [ns]",90,-0.5,89.5,250,-10,10); 
+  TH2D *htcoin_vs_HODOID_oldnew = new TH2D("htcoin_vs_HODOID_oldnew", "NEW hodo, OLD HCAL; Hodo Bar; t_{HCAL}-t_{HODO,corr} [ns]",90,-0.5,89.5,250,-10,10); 
+  TH2D *htcoin_vs_HODOID_newold = new TH2D("htcoin_vs_HODOID_newold", "OLD hodo, NEW HCAL; Hodo Bar; t_{HCAL}-t_{HODO,corr} [ns]",90,-0.5,89.5,250,-10,10); 
+  TH2D *htcoin_vs_HODOID_newnew = new TH2D("htcoin_vs_HODOID_newnew", "NEW hodo, NEW HCAL; Hodo Bar; t_{HCAL}-t_{HODO,corr} [ns]",90,-0.5,89.5,250,-10,10); 
+
+  fout->mkdir("hTWHODO")->cd();
+  TH2D *hTWHODOL[90];
+  TH2D *hTWHODOL_corr[90];
+  TH2D *hTWHODOR[90];
+  TH2D *hTWHODOR_corr[90];
+  for( int i=0; i<90; i++){
+    hTWHODOL[i] = new TH2D(Form("hTWHODOL_%i",i),"",100,0,30,100,-25,25);
+    hTWHODOL_corr[i] = new TH2D(Form("hTWHODOL_corr_%i",i),"",100,0,30,100,-25,25);
+    hTWHODOR[i] = new TH2D(Form("hTWHODOR_%i",i),"",100,0,30,100,-25,25);
+    hTWHODOR_corr[i] = new TH2D(Form("hTWHODOR_corr_%i",i),"",100,0,30,100,-25,25);
+  }
+  fout->cd();
   
   TH1D *hRes_all = new TH1D("hRes_all","",nbins,-4,4);
   TH1D *hRes_all_corr = new TH1D("hRes_all_corr","",nbins,-4,4);
@@ -230,11 +235,10 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
   
   fout->mkdir("hTWHCAL")->cd();
   TH2D *hTWHCAL[288];
-  TH2D *hTWHCAL_CORR[288];
-  TH2D *hTWHCAL_test[288];
+  TH2D *hTWHCAL_corr[288];
   for( int i=0; i<288; i++){
     hTWHCAL[i] = new TH2D(Form("hTWHCAL_%i",i),"",100,0,0.2,100,-25,25);
-    hTWHCAL_CORR[i] = new TH2D(Form("hTWHCAL_CORR_%i",i),"",100,0,0.2,100,-25,25);
+    hTWHCAL_corr[i] = new TH2D(Form("hTWHCAL_corr_%i",i),"",100,0,0.2,100,-25,25);
   }
   fout->cd();
   
@@ -250,7 +254,7 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
 
   TH1D *hpred_mom = new TH1D("hpred_mom","; Predicted p_{N} [GeV]",100,0,3);
   TH1D *hpred_beta = new TH1D("hpred_beta","; Predicted #Beta",100,0.8,1);
-  TH1D *hntof = new TH1D("hntof",";Predicted N_{TOF} [ns]",100,-1,1);
+  TH1D *hntof = new TH1D("hntof",";Predicted N_{TOF} [ns]",100,-1,-1);
   TH1D *hW2_elastic = new TH1D("hW2_elastic",";W^{2} [GeV^{2}]",100,-1,-1);
   
   
@@ -264,11 +268,7 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
   
   
   
-  
-  //event loop stuff
-  skim_tree *T = new skim_tree(C);
-  int treenum=-1,oldtreenum=-1;
-  long nev = C->GetEntries();
+  //event loopx
   for( long ev=0; ev<nev; ev++ ){
     
     T->GetEntry(ev);
@@ -279,8 +279,8 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
     //condition of atleast 1 track and 1 hcal cluster
     if (T->bb_ntr<1) continue;
     //if (T->sbs_hcal_nclus<1) continue;
-    if (T->hcal_blk_id->size()==0) continue;
-    if(T->hcal_blk_id->size()==0 || T->hcal_tdctime == 0 || T->hodo_bar->size() == 0) continue;
+    if (T->hcal_id==0)continue;
+    if(T->hcal_blk_id->size()==0 || T->hcal_tdctime == 0 || T->hodo_bar->size() == 0 || T->hodo_refright == -999) continue;
     
     //3 hits is the minimum anyway.
     //this can be made tighter, 4 or 5 hits, if we want
@@ -290,17 +290,19 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
     //jack has calibrated grinch timing for all kinematics
     //if (T->gr_trindex ==-1) continue;
     //if (T->gr_size < 3) continue;
-
+    
     //quasi invariant mass squared cut
     //for GEN2 can leave fairly wide. even 0<W2<2 would probably be fine
     if (T->W2 < 0 || T->W2 > 2.0) continue;
     if(T->ps_e < 0.2) continue;
-    if (fabs(T->dy - 0.63)>2*0.41) continue;
+    if (fabs(T->dy)>0.5) continue;
+
+    
     //grab needed track parameters:
     double vz = T->bb_vz;
     double pathl = T->bb_pathl;
     double etof = pathl/0.299792458; //electron TOF from vertex to hodo.
-
+    
     //for now predicted N pathl and tof from H2 elastics
     double npathl = T->sbs_pathl;
     double pred_beta = GetBeta(Mp,T->pred_mom);
@@ -322,320 +324,283 @@ void TOFcal(const char *outputfilename="TOFcal_out.root"){
     double bb_rftime = T->bb_rftime;
     double sbs_trigtime = T->sbs_trigtime;
     double sbs_rftime = T->sbs_rftime;
-
+    if (bb_trigtime == -999 || bb_rftime == -999 || sbs_trigtime == -999 || sbs_rftime == -999) continue;
     double T_rf = 2.008;
-      
+    
     //hodo fit stuff
-    int ID;
-    double tmean_old, tdiff_old;
-    double tmean_CORR, tdiff_CORR;
-    //if (T->hodo_bar->size()>0){
-      //relevant hodo cluster parameters
-      double tleft = T->hodo_tleft->at(0);
-      double tright = T->hodo_tright->at(0);
-      double totleft = T->hodo_totleft->at(0);
-      double totright = T->hodo_totright->at(0);
-      
-      ID = int(T->hodo_bar->at(0));
-      
-      double yhodo = T->bb_y+zhodo*T->bb_ph_fp;
-      
-      // how to define our chi2 statistic? We want to correct all hodo PMT times to tvertex = 0:
-      // tPMT = etof + t0 - walk * TOT + d/vscint
-      // chi2 = sum_{i=1}^N \sum_{j=1}^Nhit (tPMT-etof-t0+walk*TOT - d/vscint)^2
-      // dchi2/dt0_k = 2*\sum_i,j (tPMT-etof-t0+walk*TOT-d/vscint)*-1
-      // dchi2/dwalk_k = 2*sum_i,j (tPMT-etof-t0+walk*TOT-d/vscint)*TOT
-      // dchi2/d(1/v)_k = 2*sum_i,j (tPMT-etof-t0+walk*TOT-d/vscint)*-d
+    int hodo_id = int(T->hodo_bar->at(0));
 
-      double dLEFT = std::min(Lbar_hodo,std::max(0.0,Lbar_hodo/2.0 - yhodo));
-      double dRIGHT = std::min(Lbar_hodo,std::max(0.0,Lbar_hodo/2.0 + yhodo));
-      
-      // we want to minimize
-      // chi2 = sum_{i=1}^Nevent (tleft_corr^2 + tright_corr^2)
-      // dchi2/dt0_j = sum_i (2*tleft_corr_i*dtleft_corr_i/dt0_j + 2*tright_corr_i*dtright_corr_i/dt0_j) = 0
-      int ipar_t0 = ID;
-      int ipar_vinv = ID+90;
-      int ipar_wL = ID+180;
-      int ipar_wR = ID+270;
+    double tmean_old = T->hodo_tmean->at(0);
+    double tdiff_old = T->hodo_tdiff->at(0);
     
-      //sum_i (tL - etof - t0 + w*TOTL - dL/v) = 0  
-      // tL-etof = t0L -w*TOTL + dL/v
-      //there is a more elegant way to do this:
-      //Left PMT:
-      Mhodo(ipar_t0,ipar_t0) += 1.0;
-      Mhodo(ipar_t0,ipar_vinv) += dLEFT;
-      Mhodo(ipar_t0,ipar_wL) += -totleft;
+    double tleft = T->hodo_tleft->at(0);
+    double tright = T->hodo_tright->at(0);
+    double totleft = T->hodo_totleft->at(0);
+    double totright = T->hodo_totright->at(0);
+    
+    
+    double yhodo = T->bb_y+zhodo*T->bb_ph_fp;
+    
+    double dLEFT = std::min(Lbar_hodo,std::max(0.0,Lbar_hodo/2.0 - yhodo));
+    double dRIGHT = std::min(Lbar_hodo,std::max(0.0,Lbar_hodo/2.0 + yhodo));
+    
+    
+    // we want to minimize
+    //note i have started with "all positive" definitions
+    // hodo
+    // tPMT = etof + t0 - walk * TOT + d/vscint
+    // chi2 = sum_{i=1}^N \sum_{j=1}^Nhit (tPMT-etof-t0+walk*TOT - d/vscint)^2
+    // dchi2/dt0_k = 2*\sum_i,j (tPMT-etof-t0+walk*TOT-d/vscint)*-1
+    // dchi2/dwalk_k = 2*sum_i,j (tPMT-etof-t0+walk*TOT-d/vscint)*TOT
+    // dchi2/d(1/v)_k = 2*sum_i,j (tPMT-etof-t0+walk*TOT-d/vscint)*-d
+    // hcal
+    //tPMT-ntof = t0 + w0*E + w1/sqrt(E)
+    // chi2 = sum_{i=1}^N \sum_{j=1}^Nhit (tPMT-ntof-t0 - w0*E - w1/sqrt(E))^2
+    // dchi2/dt0_k = 2*\sum_i,j (tPMT-etof - t0 - w0*E - w1/sqrt(E))*-1
+    // dchi2/dw0_k = 2*\sum_i,j (tPMT-etof - t0 - w0*E - w1/sqrt(E))*-E
+    // dchi2/dw1_k = 2*\sum_i,j (tPMT-etof - t0 - w0*E - w1/sqrt(E))*-1/sqrt(E)
+    // chi2 = sum_{i=1}^Nevent (tleft_corr^2 + tright_corr^2)
+    // dchi2/dt0_j = sum_i (2*tleft_corr_i*dtleft_corr_i/dt0_j + 2*tright_corr_i*dtright_corr_i/dt0_j) = 0
       
-      Mhodo(ipar_vinv, ipar_t0) += dLEFT;
-      Mhodo(ipar_vinv, ipar_vinv) += pow(dLEFT,2);
-      Mhodo(ipar_vinv, ipar_wL) += -totleft*dLEFT;
+    
       
-      Mhodo(ipar_wL, ipar_t0) += -totleft;
-      Mhodo(ipar_wL, ipar_vinv) += -totleft*dLEFT;
-      Mhodo(ipar_wL, ipar_wL) += pow(totleft,2);
-      
-      bhodo(ipar_t0) += (tleft - (etof-etof0))*1.0;
-      bhodo(ipar_vinv) += (tleft -(etof-etof0))*dLEFT;
-      bhodo(ipar_wL) += (tleft - (etof-etof0))*(-totleft);
-      
+    //if this is the second time running, calculate corrected variables, otherwise
+    //these will just come out the same as the "old" variables since all new factors
+    //will be zero upon first iteration.
+    double tleft_corr = tleft - (etof-etof0) - t0[hodo_id] - HODOwL[hodo_id]*totleft - dLEFT/vscint[hodo_id];
+    double tright_corr = tright - (etof-etof0) - t0[hodo_id] - HODOwR[hodo_id]*totright - dRIGHT/vscint[hodo_id];
+    //double tleft_corr = tleft - (etof-etof0);
+    //double tright_corr = tright - (etof-etof0);
+    
+    //calculate a corrected time difference without the propagation correction:
+    double tdiff_corr = tleft_corr - tright_corr;
+    double tmean_corr = 0.5 * (tleft_corr + tright_corr);
+    double totmean = 0.5 * (totleft + totright);
+    
+    double tmean_raw = 0.5 * (tleft + tright) - (etof-etof0);
+    double tdiff_raw = tleft - tright;
+    
+    //hall B vertex time calcs
+    double rf_offset = -1.0;//1.0;
+    double t_vz = tmean_corr + T->hodo_refleft;
+    double t_start = bb_rftime + vz/0.299792458;
+    double dt_vz = t_vz - t_start;
+    double dt_vz_corr = dt_vz - tpad_rf[hodo_id];
+    double tR = fmod(dt_vz,T_rf) + rf_offset;
+    double tR_corr = fmod(dt_vz_corr,T_rf) + rf_offset;
+    
+    //Fill histograms
+    htmean_hodoID_old->Fill( hodo_id, tmean_old );
+    htmean_hodoID_raw->Fill( hodo_id, tmean_raw );
+    htmean_hodoID_new->Fill( hodo_id, tmean_corr );
 
-      //Right PMT:
-      Mhodo(ipar_t0,ipar_t0) += 1.0;
-      Mhodo(ipar_t0,ipar_vinv) += dRIGHT;
-      Mhodo(ipar_t0,ipar_wR) += -totright;
+    htdiff_yhodo_old->Fill( yhodo, tdiff_old );
+    htdiff_yhodo_raw->Fill( yhodo, tdiff_raw );
+    htdiff_yhodo_new->Fill( yhodo, tdiff_corr );
+
+    //hodoscope tw
+    hTWHODOL[hodo_id]->Fill( totleft, tleft );
+    hTWHODOL_corr[hodo_id]->Fill( totleft, tleft_corr );
+    hTWHODOR[hodo_id]->Fill( totright, tright );
+    hTWHODOR_corr[hodo_id]->Fill( totright, tright_corr );
+
+    //hodoscope resids (fmod times)
+    hRes_all->Fill(tR);
+    hRes_all_corr->Fill(tR_corr);
+    h2d_ResTW_all->Fill(totmean, tR);
+    h2d_ResTW_all_corr->Fill(totmean, tR_corr);
+    hRes[hodo_id]->Fill(tR);
+    hRes_corr[hodo_id]->Fill(tR_corr);
+
+    //t_vz - t_hodo_start
+    hdt_vz[hodo_id]->Fill(dt_vz);
+    hdt_vz_corr[hodo_id]->Fill(dt_vz_corr);
+    hdt_vz_all->Fill(dt_vz);
+    hdt_vz_all_corr->Fill(dt_vz_corr);
+    h2d_dt_vz->Fill(hodo_id, dt_vz);
+    h2d_dt_vz_corr->Fill(hodo_id,dt_vz_corr);
+    h2d_dt_vzTW->Fill(totmean, dt_vz);
+    h2d_dt_vzTW_corr->Fill(totmean, dt_vz_corr);
       
-      Mhodo(ipar_vinv, ipar_t0) += dRIGHT;
-      Mhodo(ipar_vinv, ipar_vinv) += pow(dRIGHT,2);
-      Mhodo(ipar_vinv, ipar_wR) += -totright*dRIGHT;
       
-      Mhodo(ipar_wR, ipar_t0) += -totright;
-      Mhodo(ipar_wR, ipar_vinv) += -totright*dRIGHT;
-      Mhodo(ipar_wR, ipar_wR) += pow(totright,2);
+    //hcal fit stuff
+    //cout << T->hcal_blk_id->size() << endl;
+    for(uint i=0; i<T->hcal_blk_id->size(); i++){
+      int hcal_id = (int) T->hcal_blk_id->at(i) - 1;
+      if (hcal_id==-1) continue;
+      double hcal_e = T->hcal_blk_e->at(i);
+      double tHCAL = T->hcal_blk_tdctime->at(i);
       
-      bhodo(ipar_t0) += (tright - (etof-etof0))*1.0;
-      bhodo(ipar_vinv) += (tright -(etof-etof0))*dRIGHT;
-      bhodo(ipar_wR) += (tright - (etof-etof0))*(-totright);
-    
+      //need these cuts to keep the minisation well constrained as a result of
+      //unphysical noise outside these regions
+      if(!(hcal_e>0.01 && tHCAL > 0 && tHCAL < 20)) continue;
+      
+      int ipar_t0 = hodo_id;
+      int ipar_vinv = hodo_id + 90;
+      int ipar_wL = hodo_id + 180;
+      int ipar_wR = hodo_id + 270;
+      int ipar_rf_hodo = hodo_id + 360;
+      int ipar_t1 = nparams_hodo + hcal_id;
+      int ipar_w0 = nparams_hodo + hcal_id + 288; 
+      int ipar_w1 = nparams_hodo  + hcal_id + 2*288; 
+      int ipar_rf_hcal = nparams_hodo + hcal_id + 3*288;
+      
+      Mh(ipar_t0,ipar_t0) += 1.0;
+      Mh(ipar_t1,ipar_t1) += 1.0;
+      //Mh(ipar_t0,ipar_t1) += -1.0;
+      //Mh(ipar_t1,ipar_t0) += -1.0;
+      
+      Mh(ipar_t1,ipar_w0) += hcal_e;
+      Mh(ipar_t1,ipar_w1) += 1/sqrt(hcal_e);
+      
+      Mh(ipar_w0,ipar_t1) += hcal_e;
+      Mh(ipar_w0,ipar_w0) += pow(hcal_e,2);
+      Mh(ipar_w0,ipar_w1) += sqrt(hcal_e);
+      
+      Mh(ipar_w1,ipar_t1) += 1/sqrt(hcal_e);
+      Mh(ipar_w1,ipar_w0) += sqrt(hcal_e);
+      Mh(ipar_w1,ipar_w1) += 1/hcal_e;
+      
+      
+      //tleft
+      Mh(ipar_t0,ipar_vinv) += -dLEFT;
+      Mh(ipar_t0,ipar_wL) += -totleft;
+      
+      Mh(ipar_vinv, ipar_t0) += -dLEFT;
+      Mh(ipar_vinv, ipar_vinv) += pow(dLEFT,2);
+      Mh(ipar_vinv, ipar_wL) += totleft*dLEFT;
+      
+      Mh(ipar_wL, ipar_t0) += -totleft;
+      Mh(ipar_wL, ipar_vinv) += totleft*dLEFT;
+      Mh(ipar_wL, ipar_wL) += pow(totleft,2);
+      
+      
+      //tright
+      Mh(ipar_t0,ipar_vinv) += -dRIGHT;
+      Mh(ipar_t0,ipar_wR) += -totright;
+      
+      Mh(ipar_vinv, ipar_t0) += -dRIGHT;
+      Mh(ipar_vinv, ipar_vinv) += pow(dRIGHT,2);
+      Mh(ipar_vinv, ipar_wR) += totright*dRIGHT;
+      
+      Mh(ipar_wR, ipar_t0) += -totright;
+      Mh(ipar_wR, ipar_vinv) += totright*dRIGHT;
+      Mh(ipar_wR, ipar_wR) += pow(totright,2);
+      
+      bh(ipar_t1) += (tHCAL-tmean_raw) * 1.0;
+      bh(ipar_t0) += -(tHCAL-tmean_raw) * 1.0;
+      bh(ipar_w0) += (tHCAL-tmean_raw) * (hcal_e);
+      bh(ipar_w1) += (tHCAL-tmean_raw) * (1/sqrt(hcal_e));
+      //bh(ipar_w0) += (tHCAL - (ntof - ntof0)) * (hcal_e);
+      //bh(ipar_w1) += (tHCAL - (ntof - ntof0)) * (1/sqrt(hcal_e));
+      bh(ipar_vinv) += -(tHCAL-tmean_raw)*(dRIGHT+dLEFT);
+      bh(ipar_wR) += -(tright - (etof-etof0))*totright;
+bh(ipar_wL) += -(tleft - (etof-etof0))*totleft;
+
+
       //if this is the second time running, calculate corrected variables, otherwise
       //these will just come out the same as the "old" variables since all new factors
       //will be zero upon first iteration.
-      double tleft_CORR = tleft - (etof-etof0) - HODOt0[ID] + HODOwL[ID]*totleft - dLEFT/vscint[ID];
-      double tright_CORR = tright - (etof-etof0) - HODOt0[ID] + HODOwR[ID]*totright - dRIGHT/vscint[ID];
-
-      //calculate a corrected time difference without the propagation correction:
-      tdiff_CORR = tleft_CORR - tright_CORR;
-      tmean_CORR = 0.5 * (tleft_CORR + tright_CORR);
-      double totmean = 0.5 * (totleft + totright);
-      tmean_old = T->hodo_tmean->at(0);
-      tdiff_old = T->hodo_tdiff->at(0);
+      //double tHCAL_corr = tHCAL - (ntof - ntof0) - HCALw0[hcal_id]*hcal_e - HCALw1[hcal_id]/sqrt(hcal_e);
+      double tHCAL_corr = tHCAL - t1[hcal_id] - HCALw0[hcal_id]*hcal_e - HCALw1[hcal_id]/sqrt(hcal_e);
+      //double tHCAL_corr = tHCAL;
     
-      double tmean_raw = (tleft + tright)/2;
-      double tdiff_raw = tleft - tright;
+      hTWHCAL[hcal_id]->Fill(hcal_e,tHCAL);
+      hTWHCAL_corr[hcal_id]->Fill(hcal_e,tHCAL_corr);
     
-      //hall B vertex time calcs
-      double rf_offset = -1.0;//1.0;
-      double t_vz = tmean_CORR + bb_trigtime;
-      double t_start = bb_rftime + vz/0.299792458;
-      double dt_vz = t_vz - t_start;
-      double dt_vz_corr = dt_vz - tpad_rf[ID];
-      double tR = fmod(dt_vz,T_rf) + rf_offset;
-      double tR_corr = fmod(dt_vz_corr,T_rf) + rf_offset;
-      
-
-      //Fill histograms
-      htmean_hodoID_old->Fill( ID, tmean_old );
-      htmean_hodoID_raw->Fill( ID, tmean_raw );
-      htmean_hodoID_new->Fill( ID, tmean_CORR );
-
-      htdiff_yhodo_old->Fill( yhodo, tdiff_old );
-      htdiff_yhodo_raw->Fill( yhodo, tdiff_raw );
-      htdiff_yhodo_new->Fill( yhodo, tdiff_CORR );
-    
-      //hodoscope resids (fmod times)
-      hRes_all->Fill(tR);
-      hRes_all_corr->Fill(tR_corr);
-      h2d_ResTW_all->Fill(totmean, tR);
-      h2d_ResTW_all_corr->Fill(totmean, tR_corr);
-      hRes[ID]->Fill(tR);
-      hRes_corr[ID]->Fill(tR_corr);
-
-      //t_vz - t_hodo_start
-      hdt_vz[ID]->Fill(dt_vz);
-      hdt_vz_corr[ID]->Fill(dt_vz_corr);
-      hdt_vz_all->Fill(dt_vz);
-      hdt_vz_all_corr->Fill(dt_vz_corr);
-      h2d_dt_vz->Fill(ID, dt_vz);
-      h2d_dt_vz_corr->Fill(ID,dt_vz_corr);
-      h2d_dt_vzTW->Fill(totmean, dt_vz);
-      h2d_dt_vzTW_corr->Fill(totmean, dt_vz_corr);
-      
-      //}
-
-    //hcal fit stuff
-    //since we are doing timewalk, need to do it on the blks, then re-calculate the
-    //new energy weighted cluster time average after individual blocks have TW corr
-    double num_sum = 0;
-    double denom_sum = 0;
-    for(uint i=0; i<T->hcal_blk_id->size(); i++){
-      int idblkHCAL = (int) T->hcal_blk_id->at(i) - 1;
-      double tHCAL = T->hcal_blk_tdctime->at(i);
-      double eblkHCAL = T->hcal_blk_e->at(i);
-
-      //need these cuts to keep the minisation well constrained as a result of
-      //unphysical noise outside these regions
-      if(eblkHCAL>0.01 && tHCAL > 0 && tHCAL < 20){
-
-	//note i have started with "all positive" definitions
-	//tPMT-ntof = t0 + w0*E + w1/sqrt(E)
-	// chi2 = sum_{i=1}^N \sum_{j=1}^Nhit (tPMT-ntof-t0 - w0*E - w1/sqrt(E))^2
-	// dchi2/dt0_k = 2*\sum_i,j (tPMT-etof - t0 - w0*E - w1/sqrt(E))*-1
-	// dchi2/dw0_k = 2*\sum_i,j (tPMT-etof - t0 - w0*E - w1/sqrt(E))*-E
-	// dchi2/dw1_k = 2*\sum_i,j (tPMT-etof - t0 - w0*E - w1/sqrt(E))*-1/sqrt(E)
-      
-	int ipar_t0 = idblkHCAL;
-	int ipar_w0 = idblkHCAL + 288; 
-	int ipar_w1 = idblkHCAL + 2*288; 
-      
-	Mhcal(ipar_t0,ipar_t0) += 1.0;
-	Mhcal(ipar_t0,ipar_w0) += eblkHCAL;
-	Mhcal(ipar_t0,ipar_w1) += 1/sqrt(eblkHCAL);
-      
-	Mhcal(ipar_w0,ipar_t0) += eblkHCAL;
-	Mhcal(ipar_w0,ipar_w0) += pow(eblkHCAL,2);
-	Mhcal(ipar_w0,ipar_w1) += sqrt(eblkHCAL);
-      
-	Mhcal(ipar_w1,ipar_t0) += 1/sqrt(eblkHCAL);
-	Mhcal(ipar_w1,ipar_w0) += sqrt(eblkHCAL);
-	Mhcal(ipar_w1,ipar_w1) += 1/eblkHCAL;
-      
-      
-	//(ntof - ntof0);
-	//bhcal(ipar_t0) += (tHCAL) * 1.0;
-	//bhcal(ipar_w0) += (tHCAL) * (eblkHCAL);
-	//bhcal(ipar_w1) += (tHCAL) * (1/sqrt(eblkHCAL));
-	bhcal(ipar_t0) += (tHCAL - (ntof - ntof0)) * 1.0;
-	bhcal(ipar_w0) += (tHCAL - (ntof - ntof0)) * (eblkHCAL);
-	bhcal(ipar_w1) += (tHCAL - (ntof - ntof0)) * (1/sqrt(eblkHCAL));
-      }
-      
-      //double tHCAL_CORR = tHCAL - HCALt0[idblkHCAL] - HCALw0[idblkHCAL]*eblkHCAL - HCALw1[idblkHCAL]/sqrt(eblkHCAL);
-      double tHCAL_CORR = tHCAL - (ntof - ntof0) - HCALt0[idblkHCAL] - HCALw0[idblkHCAL]*eblkHCAL - HCALw1[idblkHCAL]/sqrt(eblkHCAL);
-	
-      num_sum += tHCAL_CORR*eblkHCAL;
-      denom_sum += eblkHCAL;
-      
-      hTWHCAL[idblkHCAL]->Fill(eblkHCAL,tHCAL);
-      hTWHCAL_CORR[idblkHCAL]->Fill(eblkHCAL,tHCAL_CORR);
-      
       double rf_sbsoffset = 0.0;
-      double tHCAL_vz = tHCAL_CORR + sbs_trigtime;
+      double tHCAL_vz = tHCAL_corr + sbs_trigtime;
       double tHCAL_start = sbs_rftime + vz/0.299792458; 
       double dtHCAL_vz = tHCAL_vz - tHCAL_start;
-      double dtHCAL_vz_corr = dtHCAL_vz - tpad_rf_hcal[idblkHCAL];
+      double dtHCAL_vz_corr = dtHCAL_vz - tpad_rf_hcal[hcal_id];
       double tRHCAL = fmod(dtHCAL_vz, T_rf) + rf_sbsoffset;
       double tRHCAL_corr = fmod(dtHCAL_vz_corr, T_rf) + rf_sbsoffset;
-      
-      
+    
+      //fill hcal histos
+      htmean_hcalID_old->Fill( hcal_id, tHCAL );
+      htmean_hcalID_new->Fill( hcal_id, tHCAL_corr );
+    
+      htmean_hcale_old->Fill( hcal_e, tHCAL );
+      htmean_hcale_new->Fill( hcal_e, tHCAL_corr );
+    
       //hcal resids (fmods)? later
       hResHCAL_all->Fill(tRHCAL);
       hResHCAL_all_corr->Fill(tRHCAL_corr);
-      hResHCAL[idblkHCAL]->Fill(tRHCAL);
-      hResHCAL_corr[idblkHCAL]->Fill(tRHCAL_corr);
-      
+      hResHCAL[hcal_id]->Fill(tRHCAL);
+      hResHCAL_corr[hcal_id]->Fill(tRHCAL_corr);
+    
       //t_vz_hcal - t_hcal_start
       hdtHCAL_vz_all->Fill(dtHCAL_vz);
       hdtHCAL_vz_all_corr->Fill(dtHCAL_vz_corr);
-      h2d_dtHCAL_vz->Fill(idblkHCAL,dtHCAL_vz);
-      h2d_dtHCAL_vz_corr->Fill(idblkHCAL, dtHCAL_vz_corr);
-      hdtHCAL_vz[idblkHCAL]->Fill(dtHCAL_vz);
-      hdtHCAL_vz_corr[idblkHCAL]->Fill(dtHCAL_vz_corr);
-      
-      htmean_hcalID_old->Fill( idblkHCAL, tHCAL );
-      htmean_hcalID_new->Fill( idblkHCAL, tHCAL_CORR );
-      
-      htmean_hcale_old->Fill( eblkHCAL, tHCAL );
-      htmean_hcale_new->Fill( eblkHCAL, tHCAL_CORR );
-    }
-    //now calculate new cluster E weighted time average
-    double hcal_tmean_corr;
-    if(num_sum==0 || denom_sum ==0)
-      hcal_tmean_corr = 0;
-    else
-      hcal_tmean_corr = num_sum / denom_sum;
+      h2d_dtHCAL_vz->Fill(hcal_id,dtHCAL_vz);
+      h2d_dtHCAL_vz_corr->Fill(hcal_id, dtHCAL_vz_corr);
+      hdtHCAL_vz[hcal_id]->Fill(dtHCAL_vz);
+      hdtHCAL_vz_corr[hcal_id]->Fill(dtHCAL_vz_corr);
     
-    //draw v1190 vs F1 trigtime correlations
-    htrig_BBvSBS->Fill(bb_trigtime, sbs_trigtime);
-    hRF_BBvSBS->Fill(bb_rftime, sbs_rftime);
-    hBB_TRIGvRF->Fill(bb_rftime, bb_trigtime);
-    hSBS_TRIGvRF->Fill(sbs_rftime, sbs_trigtime);
 
-    //draw dxdy corrected for proton deflection, should be a QE blob around (0,0)
-    hdxdy->Fill( dy,dx );
+      //draw v1190 vs F1 trigtime correlations
+      htrig_BBvSBS->Fill(bb_trigtime, sbs_trigtime);
+      hRF_BBvSBS->Fill(bb_rftime, sbs_rftime);
+      hBB_TRIGvRF->Fill(bb_rftime, bb_trigtime);
+      hSBS_TRIGvRF->Fill(sbs_rftime, sbs_trigtime);
 
-    
-    //if QE cuts passed, do coincidence time stuff (i assume?)
-    //if( T->hcal_e>0.02 && W2>W2min && W2<W2max && sqrt(pow(dx,2)+pow(dy,2))<=0.24 ){
-      // cout << "(Eprime,etheta,ephi)=("
-      //      << ep.Mag() << ", " << etheta*57.3 << ", "
-      //      << ephi*57.3 << ")" << endl;
-      // cout << "(ptheta_etheta,pp_etheta)=("
-      //      << ptheta_etheta*57.3 << ", " << pp_etheta << ")" << endl;
-	
-      // cout << "(ephi,pphi)=(" << ephi*57.3 << ", " << pphi_ephi*57.3 << ")"
-      //      << endl;
-      
-      int idblkHCAL = (int) T->hcal_id - 1; 
-      double eblkHCAL = T->hcal_blk_e->at(0);
-      double tHCAL = T->hcal_tdctime;
-      double tHCAL_CORR = tHCAL - (HCALt0[idblkHCAL] + HCALw0[idblkHCAL]*eblkHCAL + HCALw1[idblkHCAL]/sqrt(eblkHCAL));
-      double rf_sbsoffset = 0.0;
-      double tHCAL_vz = tHCAL_CORR + sbs_trigtime;
-      double tHCAL_start = sbs_rftime + vz/0.299792458; 
-      double dtHCAL_vz = tHCAL_vz - tHCAL_start;
-      double dtHCAL_vz_corr = dtHCAL_vz - tpad_rf_hcal[idblkHCAL];
-      double tRHCAL = fmod(dtHCAL_vz, T_rf) + rf_sbsoffset;
-      double tRHCAL_corr = fmod(dtHCAL_vz_corr, T_rf) + rf_sbsoffset;
-      
-      
-      htcoin_vs_HCALID_oldold->Fill( idblkHCAL, T->hcal_tdctime-tmean_old);
-      htcoin_vs_HCALID_oldnew->Fill( idblkHCAL, tHCAL-tmean_CORR);
-      htcoin_vs_HCALID_newold->Fill( idblkHCAL, tHCAL_CORR-tmean_old);
-      htcoin_vs_HCALID_newnew->Fill( idblkHCAL, tHCAL_CORR-tmean_CORR);
+      //draw dxdy corrected for proton deflection, should be a QE blob around (0,0)
+      hdxdy->Fill( dy,dx );
 
-      htcoin_vs_HODOID_oldold->Fill( ID, tHCAL-tmean_old);
-      htcoin_vs_HODOID_oldnew->Fill( ID, tHCAL-tmean_CORR);
-      htcoin_vs_HODOID_newold->Fill( ID, tHCAL_CORR-tmean_old);
-      htcoin_vs_HODOID_newnew->Fill( ID, tHCAL_CORR-tmean_CORR);
+      //coincidence time plots
+      htcoin_vs_HCALID_oldold->Fill( hcal_id, T->hcal_tdctime-tmean_old);
+      htcoin_vs_HCALID_oldnew->Fill( hcal_id, tHCAL-tmean_corr);
+      htcoin_vs_HCALID_newold->Fill( hcal_id, tHCAL_corr-tmean_old);
+      htcoin_vs_HCALID_newnew->Fill( hcal_id, tHCAL_corr-tmean_corr);
 
-      htcoin->Fill(T->hcal_tdctime-tmean_old);
-      htcoin_corr->Fill(tHCAL_CORR-tmean_CORR);
+      htcoin_vs_HODOID_oldold->Fill( hodo_id, tHCAL-tmean_old);
+      htcoin_vs_HODOID_oldnew->Fill( hodo_id, tHCAL-tmean_corr);
+      htcoin_vs_HODOID_newold->Fill( hodo_id, tHCAL_corr-tmean_old);
+      htcoin_vs_HODOID_newnew->Fill( hodo_id, tHCAL_corr - tmean_corr);
+
+      htcoin->Fill(tHCAL-tmean_raw);
+      htcoin_corr->Fill(tHCAL_corr - tmean_corr);
 
       htcoinRF->Fill(dtHCAL_vz - dt_vz);
       htcoinRF_corr->Fill(dtHCAL_vz - dt_vz_corr);
-      
-      //}
+    }
   }//end of event loop
 
 
-  TDecompSVD Ahodo(Mhodo);
-  Ahodo.Solve(bhodo);
+  TDecompSVD Ah(Mh);
+  Ah.Solve(bh);
 
-  TDecompSVD Ahcal(Mhcal);
-  Ahcal.Solve(bhcal);
-
+  
   TF1 *fres[90]; 
   for(int i=0; i<90; i++){
     fres[i] = new TF1(Form("fres_%i",i),"gaus",-2,2);
     int maxbin = hRes_corr[i]->GetMaximumBin();
     double max = hRes_corr[i]->GetXaxis()->GetBinCenter(maxbin);
     hRes_corr[i]->Fit(fres[i],"Q","",max-0.5,max+0.5);
-    bhodo[i+360] = tpad_rf[i] + fres[i]->GetParameter(1);
+    //bh[360+i] = tpad_rf[i] + fres[i]->GetParameter(1);
+    bh[360+i] = 0;
   }
 
   TF1 *fTW[288];
   for(int i=0; i<288; i++){
+    int j=nparams_hodo+i;
     fTW[i] = new TF1(Form("fTW{%i",i),"[0]+[1]*x+[2]/sqrt(x)",0,0.2);
-    fTW[i]->FixParameter(0, bhcal[i]);
-    fTW[i]->FixParameter(1, bhcal[i+288]);
-    fTW[i]->FixParameter(2, bhcal[i+2*288]);
+    fTW[i]->SetParameter(0, bh[j]);
+    fTW[i]->FixParameter(1, bh[j+288]);
+    fTW[i]->FixParameter(2, bh[j+2*288]);
     hTWHCAL[i]->Fit(fTW[i],"QR","");
   }
-  //bhodo.Print();
-  //bhcal.Print();
+  //bh.Print();
   
-  ofstream hodoconfig;
-  hodoconfig.open("hodoparams.txt");
-  for ( int i=0; i< nparams_hodo; i++){
-    hodoconfig << bhodo[i] << endl;
-  }
-  hodoconfig.close();
   
-  ofstream hcalconfig("hcalparams.txt");
-  for ( int i=0; i< nparams_HCAL; i++){
-    hcalconfig << bhcal[i] << endl;
+  ofstream config;
+  config.open(configfile);
+  for ( int i=0; i< nparams; i++){
+    config << bh[i] << endl;
   }
-  hcalconfig.close();
-
+  config.close();
+  
+  
   fout->Write();
       
 }

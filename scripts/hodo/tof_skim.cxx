@@ -48,7 +48,10 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   
   double hcal_voffset = 0.1;
   double hcal_hoffset = 0.25;
-  
+  if(Target == "H2"){
+    hcal_voffset = 0.0;
+    hcal_hoffset = 0.0;
+  }
   //setting the correct coordinates for hcal axis in the lab frame
   //sean method
   TVector3 hcal_zaxis(sin(-th_sbs),0,cos(-th_sbs)); // Clock-wise rotation about Y axis
@@ -180,7 +183,16 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_timediff = {rd, "bb.hodotdc.clus.bar.tdc.timediff"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_vpos = {rd, "bb.hodotdc.clus.bar.tdc.vpos"};
   TTreeReaderArray<Double_t> bb_hodotdc_clus_bar_tdc_timehitpos = {rd, "bb.hodotdc.clus.bar.tdc.timehitpos"};
-  
+
+  //hodoscope reference
+  TTreeReaderValue<Int_t> Ndata_bb_hodotdc_Ref_tdcelemID = {rd, "Ndata.bb.hodotdc.Ref.tdcelemID"};
+  TTreeReaderArray<Double_t> bb_hodotdc_Ref_tdcelemID = {rd, "bb.hodotdc.Ref.tdcelemID"};
+  TTreeReaderArray<Double_t> bb_hodotdc_Ref_tdc = {rd, "bb.hodotdc.Ref.tdc"};
+  TTreeReaderArray<Double_t> bb_hodotdc_Ref_tdc_te = {rd, "bb.hodotdc.Ref.tdc_te"};
+  TTreeReaderArray<Double_t> bb_hodotdc_Ref_tdc_tot = {rd, "bb.hodotdc.Ref.tdc_tot"};
+  TTreeReaderArray<Double_t> bb_hodotdc_Ref_tdc_mult = {rd, "bb.hodotdc.Ref.tdc_mult"};
+    
+    
   //grinch
   //TTreeReaderValue<Double_t> bb_grinch_tdc_bestcluster = {rd, "bb.grinch_tdc.bestcluster"};
   TTreeReaderValue<Double_t> bb_grinch_tdc_clus_adc = {rd, "bb.grinch_tdc.clus.adc"};
@@ -317,12 +329,15 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
   vector<double> hodo_totright;
   vector<double> hodo_timehitpos;
   vector<double> hodo_bar;
+  double hodo_refleft, hodo_refright;
   double hodo_nclus, hodo_nbar;
   tree->Branch("hodo_tmean",&hodo_tmean);
   tree->Branch("hodo_totmean",&hodo_totmean);
   tree->Branch("hodo_tdiff",&hodo_tdiff);
   tree->Branch("hodo_tleft",&hodo_tleft);
   tree->Branch("hodo_tright",&hodo_tright);
+  tree->Branch("hodo_refleft",&hodo_refleft);
+  tree->Branch("hodo_refright",&hodo_refright);
   tree->Branch("hodo_totleft",&hodo_totleft);
   tree->Branch("hodo_totright",&hodo_totright);
   tree->Branch("hodo_timehitpos",&hodo_timehitpos);
@@ -462,7 +477,6 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     
     bb_pathl = bb_tr_pathl[0];
 
-    //trigtime = *bb_gem_trigtime;
     bb_tr_nhits = bb_gem_track_nhits[0];
     bb_ntr = *bb_tr_n;
     
@@ -489,8 +503,6 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
     //eps = 0;
     //nu = kp4.E() - kpp4.E();
     //x_bj = Q2/ (2*Tp4*Qp4);
-    
-    //if (W2 > 2.0) continue;
     
     Double_t trx_sh  = (bb_x + (show_dist) * bb_th_fp );
     Double_t try_sh  = (bb_y + (show_dist) * bb_ph_fp );
@@ -595,6 +607,21 @@ void tof_skim(const Int_t kin_no = 2, const TString Target = "H2", TString rootf
       hodo_timehitpos.push_back(bb_hodotdc_clus_bar_tdc_timehitpos[i]);
       hodo_bar.push_back(bb_hodotdc_clus_bar_tdc_id[i]);
     }
+    //cout << bb_hodotdc_Ref_tdcelemID[0] << endl;
+    //cout << bb_hodotdc_Ref_tdcelemID[1] << "\n" << endl;
+    if (*Ndata_bb_hodotdc_Ref_tdcelemID<1){
+      hodo_refleft = -999;
+      hodo_refright = -999;
+    }
+    else if(*Ndata_bb_hodotdc_Ref_tdcelemID<2){
+      hodo_refleft = bb_hodotdc_Ref_tdc[0];
+      hodo_refright = 0;
+    }
+    else{
+      hodo_refleft = bb_hodotdc_Ref_tdc[0];
+      hodo_refright = bb_hodotdc_Ref_tdc[1];
+    }
+
     
     tdctrig_id.clear();
     tdctrig.clear();
